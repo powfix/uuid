@@ -30,12 +30,12 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "node": "./dist/node/index.js",
+      "node": "./dist/index.node.js",
       "default": "./dist/index.js"
     },
     "./node": {
-      "types": "./dist/node/index.d.ts",
-      "default": "./dist/node/index.js"
+      "types": "./dist/index.node.d.ts",
+      "default": "./dist/index.node.js"
     },
     "./package.json": "./package.json"
   },
