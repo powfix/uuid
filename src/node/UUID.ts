@@ -1,4 +1,4 @@
-import {UUID as BaseUUID} from "../UUID";
+import {UUID as BaseUUID} from "../shared/UUID";
 
 export class UUID extends BaseUUID {
   public toBuffer(): Buffer {
