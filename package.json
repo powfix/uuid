@@ -33,6 +33,9 @@
       "node": "./dist/node/index.js",
       "default": "./dist/index.js"
     },
+    "./node": {
+      "default": "./dist/node/index.js"
+    },
     "./package.json": "./package.json"
   },
   "dependencies": {},
