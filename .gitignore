@@ -1,3 +1,13 @@
+# IDE
+.vscode/
+.idea/
+
+# Windows
+Thumbs.db
+
+# macOS
+.DS_Store
+
 # Dependency directories
 node_modules/
 
@@ -16,9 +26,6 @@ node_modules/
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
-
-# macOS
-.DS_Store
 
 # Builds
 dist/
