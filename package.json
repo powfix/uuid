@@ -24,7 +24,9 @@
     "clean": "rm -rf dist | wc -l",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prebuild": "yarn clean",
-    "build": "tsup"
+    "build": "yarn run build:cjs && yarn run build:esm",
+    "build:cjs": "tsup --config tsup.cjs.config.ts",
+    "build:esm": "tsup --config tsup.esm.config.ts"
   },
   "files": [
     "dist"
