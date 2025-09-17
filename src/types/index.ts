@@ -1,1 +1,1 @@
-export type * from "./UuidInput";
+export * from "./UuidInput";
