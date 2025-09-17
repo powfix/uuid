@@ -17,7 +17,9 @@
   },
   "license": "MIT",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -27,20 +29,23 @@
   "publishConfig": {
     "access": "public"
   },
-  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "node": "./dist/index.node.js",
-      "default": "./dist/index.js"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
     "./node": {
       "types": "./dist/index.node.d.ts",
-      "default": "./dist/index.node.js"
+      "import": "./dist/index.node.js",
+      "require": "./dist/index.node.cjs"
     },
     "./package.json": "./package.json"
   },
   "dependencies": {},
   "devDependencies": {
-    "@types/node": "^24.5.1"
+    "@types/node": "^24.5.1",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.2"
   }
 }
