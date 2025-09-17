@@ -1,0 +1,42 @@
+{
+  "name": "@powfix/uuid",
+  "version": "0.0.1",
+  "description": "UUID",
+  "keywords": [
+    "uuid",
+    "rfc4122",
+    "rfc9562"
+  ],
+  "homepage": "https://github.com/powfix/uuid#readme",
+  "bugs": {
+    "url": "https://github.com/powfix/uuid/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/powfix/uuid.git"
+  },
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "node": "./dist/node/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^24.5.1"
+  }
+}
