@@ -26,8 +26,8 @@
     "prebuild": "yarn clean",
     "build": "yarn run build:cjs && yarn run build:esm && yarn run build:dts",
     "build:dts": "tsc -p tsconfig.declaration.json",
-    "build:cjs": "tsup --config tsup.cjs.config.ts --keep-names",
-    "build:esm": "tsup --config tsup.esm.config.ts --keep-names"
+    "build:cjs": "tsup --config tsup.cjs.config.ts",
+    "build:esm": "tsup --config tsup.esm.config.ts"
   },
   "files": [
     "dist"
