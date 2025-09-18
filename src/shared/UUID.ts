@@ -261,14 +261,14 @@ export class UUID {
    * @returns true if all provided UUIDs are identical.
    */
   public static equals(...inputs: UuidInput[]): boolean {
-    const n = inputs.length;
-    if (n < 2) {
+    const inputLength = inputs.length;
+    if (inputLength < 2) {
       throw new Error('At least two UUIDs required for comparison');
     }
 
     const ref = this.parse(inputs[0]);
 
-    for (let i = 1; i < n; ++i) {
+    for (let i = 1; i < inputLength; ++i) {
       const b = this.parse(inputs[i]);
       for (let j = 0; j < UUID.BYTE_LENGTH; ++j) {
         if (ref[j] !== b[j]) return false;
