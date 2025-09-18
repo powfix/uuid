@@ -23,6 +23,7 @@
   "scripts": {
     "clean": "rm -rf dist | wc -l",
     "test": "echo \"Error: no test specified\" && exit 1",
+    "compile": "tsc",
     "prebuild": "yarn clean",
     "build": "yarn compile && yarn build:cjs && yarn build:esm && yarn build:dts",
     "build:dts": "tsc -p tsconfig.declaration.json",
