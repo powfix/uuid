@@ -1,5 +1,6 @@
 import {Uint8ArrayUtils} from "./utils";
 import {UuidInput} from "./types";
+import crypto from 'crypto';
 
 /**
  * Represents a UUID (Universally Unique Identifier) and provides various utility
@@ -244,6 +245,10 @@ export class UUID {
   /** Returns a UUID consisting of all 0xFF bytes. */
   public static max<T extends typeof UUID>(this: T): InstanceType<T> {
     return this.fromBytes((new Uint8Array(UUID.BYTE_LENGTH)).fill(0xFF)) as InstanceType<T>;
+  }
+
+  public static v4<T extends typeof UUID>(this: T): InstanceType<T> {
+    return this.fromString(crypto.randomUUID());
   }
 
   /* --------------------------------------------------------------------
