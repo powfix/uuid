@@ -71,7 +71,11 @@ export class UUID {
    * @param input - The value to validate.
    * @returns true if the input is a valid representation of a UUID.
    */
-  public static isValid(input: UuidInput): boolean {
+  public static isValid(input: UuidInput | null | undefined): boolean {
+    if (input == null) {
+      return false;
+    }
+
     if (typeof input === 'string') {
       const length: number = input.length;
       switch (length) {
@@ -321,7 +325,7 @@ export class UUID {
   }
 
   /** Instance wrapper for {@link equals}. */
-  public equals(...inputs: UuidInput[]): boolean {
+  public equals(...inputs: (UuidInput | null | undefined)[]): boolean {
     return UUID.equals(this, ...inputs);
   }
 
