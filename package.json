@@ -25,10 +25,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "compile": "tsc",
     "prebuild": "yarn clean",
-    "build": "yarn compile && yarn build:cjs && yarn build:esm && yarn build:dts",
-    "build:dts": "tsc -p tsconfig.declaration.json",
-    "build:cjs": "tsup --config tsup.cjs.config.ts",
-    "build:esm": "tsup --config tsup.esm.config.ts"
+    "build": "yarn compile && yarn build:tsup && yarn build:dts",
+    "build:tsup": "tsup --config tsup.config.ts",
+    "build:dts": "tsc -p tsconfig.declaration.json"
   },
   "files": [
     "dist",
