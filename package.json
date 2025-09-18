@@ -25,9 +25,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "esmfix": "tsc-esm-fix --ext='.js' dist/**/*.js",
     "compile": "tsc",
+    "bundle": "tsup --config tsup.config.ts",
     "prebuild": "yarn clean",
-    "build": "yarn compile && yarn build:tsup && yarn build:dts",
-    "build:tsup": "tsup --config tsup.config.ts",
+    "build": "yarn compile && yarn bundle && yarn build:dts",
     "build:dts": "tsc -p tsconfig.declaration.json",
     "postbuild": "yarn esmfix"
   },
