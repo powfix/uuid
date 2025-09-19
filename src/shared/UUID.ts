@@ -353,6 +353,10 @@ export class UUID {
     return UUID.version(this.bytes);
   }
 
+  public isValid(): boolean {
+    return UUID.isValidBytes(this.bytes);
+  }
+
   /**
    * Returns the RFC 4122 string representation of this UUID.
    * @returns The formatted UUID string.
