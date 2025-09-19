@@ -227,18 +227,22 @@ export class UUID {
         default:
           throw new Error(`Invalid input string, length should be ${UUID.STR_LENGTH} or ${UUID.HEX_STR_LENGTH}`);
       }
-    } else if (input instanceof UUID) {
+    }
+
+    if (input instanceof UUID) {
       return input.toBytes();
-    } else if (ArrayBuffer.isView(input)) {
+    }
+
+    if (ArrayBuffer.isView(input)) {
       return this.parseBytes(input);
+    }
+
+    if (input == null) {
+      throw new Error(`Not expected invalid input received: ${input}`);
+    } else if (typeof input === 'object') {
+      throw new Error(`Not expected invalid input received: [${typeof input}] ${JSON.stringify(input)}`);
     } else {
-      if (input == null) {
-        throw new Error(`Not expected invalid input received: ${input}`);
-      } else if (typeof input === 'object') {
-        throw new Error(`Not expected invalid input received: [${typeof input}] ${JSON.stringify(input)}`);
-      } else {
-        throw new Error(`Not expected invalid input received: [${typeof input}] ${input}`);
-      }
+      throw new Error(`Not expected invalid input received: [${typeof input}] ${input}`);
     }
   }
 
