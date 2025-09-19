@@ -100,7 +100,7 @@ export class UUID {
   }
 
   public static version(input: UuidInput): number {
-    return (this.parse(input)[6] >> 4) & 0x0F;
+    return this.parse(input)[6] >> 4;
   }
 
   /* --------------------------------------------------------------------
