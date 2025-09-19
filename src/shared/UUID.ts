@@ -58,11 +58,26 @@ export class UUID {
 
   /**
    * Checks whether an ArrayBufferView contains exactly {@link BYTE_LENGTH} bytes.
-   * @param bytes - The view to check.
+   * @param view - The view to check.
    * @returns true if the byte length is correct.
    */
-  public static isValidBytes(bytes: ArrayBufferView): boolean {
-    return bytes.byteLength === UUID.BYTE_LENGTH;
+  public static isValidBytes(view: ArrayBufferView): boolean {
+    const bytes = this.parseBytes(view);
+    if (bytes.byteLength !== UUID.BYTE_LENGTH) {
+      return false;
+    }
+
+    const version = this.version(bytes);
+    if (version < 1 || version > 5) {
+      return false;
+    }
+
+    const variant = (bytes[8] & 0xc0) >> 6;
+    if (variant !== 0b10) {
+      return false;
+    }
+
+    return true;
   }
 
   /**
