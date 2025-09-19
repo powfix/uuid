@@ -100,7 +100,13 @@ export class UUID {
   }
 
   public static version(input: UuidInput): number {
-    return this.parse(input)[6] >> 4;
+    if (input instanceof Uint8Array) {
+      if (input.byteLength !== this.BYTE_LENGTH) {
+        throw new Error(`Invalid UUID byte length: expected ${this.BYTE_LENGTH}, got ${input.byteLength}`);
+      }
+      return input[6] >> 4;
+    }
+    return this.version(this.parse(input));
   }
 
   /* --------------------------------------------------------------------
@@ -338,7 +344,7 @@ export class UUID {
   }
 
   public version(): number {
-    return UUID.version(this);
+    return UUID.version(this.bytes);
   }
 
   /**
