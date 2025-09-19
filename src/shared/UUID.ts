@@ -169,14 +169,14 @@ export class UUID {
 
   /**
    * Parses an Uint8Array into a Uint8Array ensuring the correct byte length.
-   * @param input - The view to parse.
+   * @param bytes - The view to parse.
    * @returns A Uint8Array containing the raw bytes.
    */
-  private static parseBytes(input: Uint8Array): Uint8Array {
-    if (!(input instanceof Uint8Array)) {
+  private static parseBytes(bytes: Uint8Array): Uint8Array {
+    if (!(bytes instanceof Uint8Array)) {
       throw new TypeError("Expected input to be Uint8Array");
     }
-    return new Uint8Array(input);
+    return new Uint8Array(bytes);
   }
 
   /* --------------------------------------------------------------------
