@@ -57,12 +57,11 @@ export class UUID {
   }
 
   /**
-   * Checks whether an ArrayBufferView contains exactly {@link BYTE_LENGTH} bytes.
-   * @param view - The view to check.
+   * Checks whether an Uint8Array contains exactly {@link BYTE_LENGTH} bytes.
+   * @param bytes - The view to check.
    * @returns true if the byte length is correct.
    */
-  public static isValidBytes(view: ArrayBufferView): boolean {
-    const bytes = this.parseBytes(view);
+  public static isValidBytes(bytes: Uint8Array): boolean {
     if (bytes.byteLength !== UUID.BYTE_LENGTH) {
       return false;
     }
@@ -82,7 +81,7 @@ export class UUID {
 
   /**
    * Generic validation that accepts either a string (hex or RFC 4122 format)
-   * or an ArrayBufferView containing the raw bytes.
+   * or an Uint8Array containing the raw bytes.
    * @param input - The value to validate.
    * @returns true if the input is a valid representation of a UUID.
    */
@@ -107,7 +106,7 @@ export class UUID {
       }
     } else if (input instanceof UUID) {
       return UUID.isValidBytes(input.bytes);
-    } else if (ArrayBuffer.isView(input)) {
+    } else if (input instanceof Uint8Array) {
       return UUID.isValidBytes(input);
     } else {
       return false;
@@ -169,13 +168,15 @@ export class UUID {
   }
 
   /**
-   * Parses an ArrayBufferView into a Uint8Array ensuring the correct byte length.
-   * @param bytes - The view to parse.
+   * Parses an Uint8Array into a Uint8Array ensuring the correct byte length.
+   * @param input - The view to parse.
    * @returns A Uint8Array containing the raw bytes.
    */
-  private static parseBytes(bytes: ArrayBufferView): Uint8Array {
-    const view = new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-    return new Uint8Array(view);
+  private static parseBytes(input: Uint8Array): Uint8Array {
+    if (!(input instanceof Uint8Array)) {
+      throw new TypeError("Expected input to be Uint8Array");
+    }
+    return new Uint8Array(input);
   }
 
   /* --------------------------------------------------------------------
@@ -202,10 +203,10 @@ export class UUID {
 
   /**
    * Creates a UUID instance from raw bytes.
-   * @param bytes - An ArrayBufferView containing 16 bytes.
+   * @param bytes - An Uint8Array containing 16 bytes.
    * @returns A new {@link UUID} object.
    */
-  public static fromBytes<T extends typeof UUID>(this: T, bytes: ArrayBufferView): InstanceType<T> {
+  public static fromBytes<T extends typeof UUID>(this: T, bytes: Uint8Array): InstanceType<T> {
     return new this(this.parseBytes(bytes)) as InstanceType<T>;
   }
 
@@ -229,12 +230,12 @@ export class UUID {
       }
     }
 
-    if (input instanceof UUID) {
-      return input.toBytes();
+    if (input instanceof Uint8Array) {
+      return this.parseBytes(input);
     }
 
-    if (ArrayBuffer.isView(input)) {
-      return this.parseBytes(input);
+    if (input instanceof UUID) {
+      return input.toBytes();
     }
 
     if (input == null) {
@@ -332,7 +333,7 @@ export class UUID {
 
   /**
    * Constructs a new {@link UUID} instance from any supported input type.
-   * @param input - The value to parse (string or ArrayBufferView).
+   * @param input - The value to parse (UuidInput = string | UuidString | Uint8Array | UUID).
    */
   public constructor(input: UuidInput) {
     this.bytes = UUID.parse(input);
