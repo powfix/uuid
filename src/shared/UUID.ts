@@ -228,8 +228,13 @@ export class UUID {
     } else if (ArrayBuffer.isView(input)) {
       return this.parseBytes(input);
     } else {
-      console.error(input);
-      throw new Error("Invalid input, Expected string or ArrayBufferView");
+      if (input == null) {
+        throw new Error(`Not expected invalid input received: ${input}`);
+      } else if (typeof input === 'object') {
+        throw new Error(`Not expected invalid input received: [${typeof input}] ${JSON.stringify(input)}`);
+      } else {
+        throw new Error(`Not expected invalid input received: [${typeof input}] ${input}`);
+      }
     }
   }
 
