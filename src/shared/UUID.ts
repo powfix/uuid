@@ -155,10 +155,7 @@ export class UUID {
     }
 
     const hex = UUID.stripHyphens(str);
-    if (hex.length !== UUID.HEX_STR_LENGTH) {
-      throw new Error('Invalid UUID string, invalid character length after strip hyphens');
-    }
-    return Uint8ArrayUtils.fromHex(hex);
+    return this.parseHex(hex);
   }
 
   /**
