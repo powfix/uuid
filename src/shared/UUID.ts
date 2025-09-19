@@ -155,9 +155,6 @@ export class UUID {
    * @returns A Uint8Array containing the raw bytes.
    */
   private static parseHex(hex: string): Uint8Array {
-    if (hex.length !== UUID.HEX_STR_LENGTH) {
-      throw new Error(`Invalid hex string, length should be ${UUID.HEX_STR_LENGTH}`);
-    }
     return Uint8ArrayUtils.fromHex(hex);
   }
 
@@ -167,14 +164,6 @@ export class UUID {
    * @returns A Uint8Array containing the raw bytes.
    */
   private static parseString(str: string): Uint8Array {
-    if (str.length !== UUID.STR_LENGTH) {
-      throw new Error(`Invalid UUID string, invalid character length should be ${UUID.STR_LENGTH}`);
-    }
-
-    if (!UUID.isValid(str)) {
-      throw new Error('Invalid UUID string, should be RFC 4122 format');
-    }
-
     const hex = UUID.stripHyphens(str);
     return this.parseHex(hex);
   }
@@ -186,9 +175,6 @@ export class UUID {
    */
   private static parseBytes(bytes: ArrayBufferView): Uint8Array {
     const view = new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-    if (view.length !== UUID.BYTE_LENGTH) {
-      throw new Error(`Expected ${UUID.BYTE_LENGTH} bytes`);
-    }
     return new Uint8Array(view);
   }
 
