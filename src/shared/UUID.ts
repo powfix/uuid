@@ -228,6 +228,7 @@ export class UUID {
     } else if (ArrayBuffer.isView(input)) {
       return this.parseBytes(input);
     } else {
+      console.error(input);
       throw new Error("Invalid input, Expected string or ArrayBufferView");
     }
   }
