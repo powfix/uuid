@@ -267,6 +267,13 @@ export class UUID {
 
   public static v4<T extends typeof UUID>(this: T): InstanceType<T> {
     const bytes = globalThis.crypto.getRandomValues(new Uint8Array(this.BYTE_LENGTH));
+
+    // Set version (4)
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+
+    // Set variant (10xxxxxx)
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+
     return this.fromBytes(bytes);
   }
 
