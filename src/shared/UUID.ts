@@ -84,7 +84,7 @@ export class UUID {
    * @param input - The value to validate.
    * @returns true if the input is a valid representation of a UUID.
    */
-  public static isValid(input: UuidInput | null | undefined): boolean {
+  public static isValid(input: UuidInput | null | undefined): input is UuidInput {
     if (input == null) {
       return false;
     }
