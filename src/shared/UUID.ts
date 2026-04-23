@@ -254,6 +254,8 @@ export class UUID {
   public static from<T extends typeof UUID>(this: T, input: null): null;
   public static from<T extends typeof UUID>(this: T, input: undefined): undefined;
   public static from<T extends typeof UUID>(this: T, input: UuidInput): InstanceType<T>;
+  public static from<T extends typeof UUID>(this: T, input: UuidInput | null): InstanceType<T> | null;
+  public static from<T extends typeof UUID>(this: T, input: UuidInput | undefined): InstanceType<T> | undefined;
   public static from<T extends typeof UUID>(this: T, input: UuidInput | null | undefined): InstanceType<T> | null | undefined {
     if (input == null) {
       return input;
