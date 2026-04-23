@@ -251,7 +251,13 @@ export class UUID {
    * @param input - The value to parse.
    * @returns A new {@link UUID} object.
    */
-  public static from<T extends typeof UUID>(this: T, input: UuidInput): InstanceType<T> {
+  public static from<T extends typeof UUID>(this: T, input: null): null;
+  public static from<T extends typeof UUID>(this: T, input: undefined): undefined;
+  public static from<T extends typeof UUID>(this: T, input: UuidInput): InstanceType<T>;
+  public static from<T extends typeof UUID>(this: T, input: UuidInput | null | undefined): InstanceType<T> | null | undefined {
+    if (input == null) {
+      return input;
+    }
     return this.fromBytes(UUID.parse(input)) as InstanceType<T>;
   }
 
