@@ -1,7 +1,7 @@
 {
   "name": "@powfix/uuid",
   "version": "0.2.19",
-  "description": "UUID",
+  "description": "UUID creation, comparison, and UUID-value maps and sets",
   "keywords": [
     "uuid",
     "rfc4122",
@@ -21,20 +21,19 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "clean": "rm -rf dist | wc -l",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "esmfix": "tsc-esm-fix --ext='.js' dist/**/*.js",
+    "clean": "node -e \"require('node:fs').rmSync('dist', {recursive: true, force: true})\"",
     "compile": "tsc",
     "bundle": "tsup --config tsup.config.ts",
-    "prebuild": "yarn clean",
-    "build": "yarn compile && yarn bundle && yarn build:dts",
-    "build:dts": "tsc -p tsconfig.declaration.json",
-    "postbuild": "yarn esmfix"
+    "prebuild": "npm run clean",
+    "build": "npm run compile && npm run bundle && npm run build:dts",
+    "build:dts": "tsc -p tsconfig.declaration.json && node scripts/cjs-declarations.mjs",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "prepack": "npm test"
   },
   "files": [
     "dist",
     "AUTHORS",
-    "LICENSE",
+    "LICENSE.md",
     "README.md"
   ],
   "publishConfig": {
@@ -42,14 +41,24 @@
   },
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     },
     "./node": {
-      "types": "./dist/index.node.d.ts",
-      "import": "./dist/index.node.js",
-      "require": "./dist/index.node.cjs"
+      "import": {
+        "types": "./dist/index.node.d.ts",
+        "default": "./dist/index.node.js"
+      },
+      "require": {
+        "types": "./dist/index.node.d.cts",
+        "default": "./dist/index.node.cjs"
+      }
     },
     "./package.json": "./package.json"
   },
@@ -57,9 +66,10 @@
   "devDependencies": {
     "@swc/core": "^1.13.5",
     "@types/node": "^24.5.1",
-    "tsc-esm-fix": "^3.1.2",
     "tsup": "^8.5.0",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "esbuild": "^0.27.1"
   },
-  "peerDependencies": {}
+  "peerDependencies": {},
+  "sideEffects": false
 }

@@ -1,11 +1,11 @@
 import {defineConfig} from 'tsup';
 
 export default defineConfig({
-  entry: ['src/**/*.ts'],
+  entry: ['src/index.ts', 'src/index.node.ts'],
   splitting: true,
-  target: 'es5',
+  target: 'es2020',
   format: ['cjs', 'esm'],
   dts: false,
   treeshake: true,
-  bundle: false,
+  bundle: true,
 });
