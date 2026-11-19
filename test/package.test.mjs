@@ -38,7 +38,11 @@ it("provides self-contained packed ESM/CJS exports, strict consumer types and br
         if ([...set][0] !== id) throw Error("canonical value missing");
         if (set.union(new Set([api.UUID.from(id).toBytes()])).size !== 1) throw Error("union failed");
       }
-      if (node.toBuffer(node.UUID.parse(id)).length !== 16) throw Error("node UUID missing");
+      const row = {uuid: node.UUID.from(id)};
+      const buffer = row.uuid.toBuffer();
+      if (!Buffer.isBuffer(buffer) || !buffer.equals(node.toBuffer(id))) throw Error("model UUID bytes differ");
+      buffer.fill(0);
+      if (!node.parse(id).toBuffer().equals(row.uuid.toBuffer())) throw Error("model UUID was mutated");
       if (shared.UuidMap !== node.UuidMap) throw Error("duplicate entry-point collections");
       if (!shared.UUID.equals(node.UUID.from(id), id)) throw Error("entry-point UUID mismatch");
     `;
@@ -68,18 +72,33 @@ it("provides self-contained packed ESM/CJS exports, strict consumer types and br
       assert.ok(local instanceof node.UUID);
       assert.equal(local.equals(other.parse(local)), true);
       assert.deepEqual(toBuffer(foreign), Buffer.from(local.toBytes()));
+      assert.deepEqual(node.UUID.from(foreign).toBuffer(), toBuffer(foreign));
+      assert.deepEqual(NodeUUID.parse(node.UUID.from(foreign)).toBuffer(), local.toBuffer());
       assert.equal(new UuidMap([[foreign, 1]]).get(local), 1);
       assert.equal(new other.UuidSet([local]).has(foreign), true);
     `);
     execFileSync(process.execPath, [join(directory, "mixed.mjs")], {cwd: directory});
 
-    for (const fixture of ["consumer-types", "consumer-node-types"]) {
+    // A model can import its Node UUID type without loading /node until later.
+    writeFileSync(join(directory, "root-first.cjs"), `
+      const assert = require("node:assert/strict");
+      const root = require("@powfix/uuid");
+      const id = root.UUID.nil();
+      assert.deepEqual(id.toBuffer(), Buffer.alloc(16));
+      const node = require("@powfix/uuid/node");
+      assert.equal(node.parse(id), id);
+      assert.equal(root.UUID, node.UUID);
+    `);
+    execFileSync(process.execPath, [join(directory, "root-first.cjs")], {cwd: directory});
+
+    for (const fixture of ["consumer-types", "consumer-node-types", "consumer-platform-types"]) {
       for (const ext of ["mts", "cts"]) copyFileSync(join(root, `test/${fixture}.ts`), join(directory, `consumer.${ext}`));
-      const nodeTypes = fixture === "consumer-node-types";
-      const configurations = ["ES2020", "ESNext"].map(lib => ({
+      const nodeTypes = fixture !== "consumer-types";
+      const nodeLibs = fixture === "consumer-platform-types" ? [] : ["ES2020", "ESNext"];
+      const configurations = nodeLibs.map(lib => ({
         module: "NodeNext", moduleResolution: "NodeNext", lib: [lib, "DOM"], files: ["consumer.mts", "consumer.cts"],
       }));
-      if (!nodeTypes) configurations.push({
+      if (fixture !== "consumer-node-types") configurations.push({
         module: "ESNext", moduleResolution: "Bundler", lib: ["ES2020"], files: ["consumer.mts"],
       });
       for (const {module, moduleResolution, lib, files} of configurations) {
@@ -110,7 +129,7 @@ it("provides self-contained packed ESM/CJS exports, strict consumer types and br
         if (set.difference(other).size !== 0) throw Error("browser difference failed");
         if (set.symmetricDifference(other).size !== 0) throw Error("browser symmetric difference failed");
         if (!set.isSubsetOf(other) || !set.isSupersetOf(other) || set.isDisjointFrom(other)) throw Error("browser predicates failed");
-        if (typeof Buffer !== "undefined") throw Error("browser test exposed Node Buffer");`, resolveDir: directory},
+        if (typeof Buffer !== "undefined" || "toBuffer" in id) throw Error("browser test exposed Node Buffer");`, resolveDir: directory},
       bundle: true, platform: "browser", target: "es2020", format: "iife", write: false,
     });
     // Also exercise ES2020-style runtimes with no native Set composition methods.

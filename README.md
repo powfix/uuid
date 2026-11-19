@@ -59,14 +59,16 @@ The published JavaScript targets ES2020. Only UUID generation requires `globalTh
 ## Node.js and database bytes
 
 ```ts
-import {parse, toBuffer} from "@powfix/uuid/node";
+import {UUID, toBuffer} from "@powfix/uuid/node";
 
-const rowKey = toBuffer("00112233-4455-4677-8899-aabbccddeeff");
-const id = parse(rowKey);
-toBuffer(id).equals(rowKey); // true
+const text = "00112233-4455-4677-8899-aabbccddeeff";
+const id = UUID.from(text);
+const rowKey = id.toBuffer();
+toBuffer(id).equals(rowKey);   // true
+toBuffer(text).equals(rowKey); // true
 ```
 
-`toBuffer(value)` accepts the same representations and returns an independent 16-byte Node `Buffer` in network byte order. Both entry points expose the same `UUID` class. Node `import` and `require` within one installation share their classes and TypeScript types. The browser root uses no Node modules. Across separate installations, use value comparison or pass a canonical string when a plain wire value is needed.
+Every UUID produced by `@powfix/uuid/node` supports `id.toBuffer()`. The standalone `toBuffer(value)` also accepts strings, byte views and UUIDs from other installations. Each call returns a fresh 16-byte Node `Buffer` in network byte order. Both entry points share one `UUID` constructor in Node, including across `import` and `require`. Browser and React Native code can use `id.toBytes()` from the root entry.
 
 ## UUID maps and sets
 
@@ -96,7 +98,7 @@ Both collections provide `size`, `clear`, `delete`, `has`, `keys`, `values`, `en
 | 0.x usage | 1.0 usage |
 | --- | --- |
 | `UUID.from(x)` for known or optional inputs | This remains available. Choose `parse` for a required ID or `tryParse` for fallible input. The constructor and all factories now reject malformed encodings. |
-| `UUID.from(x).toBuffer()` or `row.uuid.toBuffer()` | Import `toBuffer` from `@powfix/uuid/node` and call `toBuffer(x)` or `toBuffer(row.uuid)`. Existing database bytes and JSON strings keep their representation. |
+| `UUID.from(x).toBuffer()` or `row.uuid.toBuffer()` | Keep the existing call when the UUID comes from `@powfix/uuid/node`. Use `toBuffer(x)` to convert a raw value directly. Database bytes and JSON strings keep their representation. |
 | Subclass-specific static factories | The built-in factories return the shared `UUID` type. Construct your own wrapper explicitly when an application attaches additional behavior. |
 | Mutating `id.bytes` | Edit a copy from `id.toBytes()` and pass it to `parse` to create the new value. |
 | `new UuidMap<K, V>()` or `new UuidSet<K>()` | Write `new UuidMap<V>()` or `new UuidSet()`. Iteration yields `CanonicalUuid`. Keep original spelling or input objects in the map value if the application displays them. |

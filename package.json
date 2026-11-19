@@ -44,11 +44,18 @@
   "exports": {
     ".": {
       "import": {
+        "node": {
+          "types": "./dist/index.runtime-node.d.ts",
+          "default": "./dist/index.runtime-node.cjs"
+        },
         "types": "./dist/index.d.ts",
-        "node": "./dist/index.cjs",
         "default": "./dist/index.js"
       },
       "require": {
+        "node": {
+          "types": "./dist/index.runtime-node.d.cts",
+          "default": "./dist/index.runtime-node.cjs"
+        },
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }

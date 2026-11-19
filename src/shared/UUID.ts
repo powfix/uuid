@@ -65,6 +65,8 @@ export class UUID {
     }
   }
 
+  // Infer a UUID for unchecked middleware inputs while preserving explicitly nullable unions.
+  static parseNullable<T extends UuidInput>(input: T): UUID;
   static parseNullable<T extends NullableUuidInput>(input: T): ParsedNullable<T>;
   static parseNullable(input: unknown): UUID | null | undefined;
   static parseNullable(input: unknown): UUID | null | undefined {

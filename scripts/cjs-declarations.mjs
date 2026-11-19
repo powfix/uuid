@@ -26,12 +26,12 @@ for (const path of files) {
       if (declarations.has(join(target, "index.d.ts"))) return `${prefix}${specifier}/index.js${suffix}`;
       throw new Error(`Cannot resolve declaration import ${specifier} in ${path}`);
     });
-  const commonJs = esm.replace(/((?:from\s+|import\()["']\.[^"']*)\.js(["'])/g, "$1.cjs$2");
+  const commonJs = esm.replace(/((?:from\s+|module\s+|import\()["']\.[^"']*)\.js(["'])/g, "$1.cjs$2");
   await writeFile(path, esm);
   await writeFile(path.replace(/\.d\.ts$/, ".d.cts"), commonJs);
 }
 
 // Both module formats must refer to the same branded string and private class fields.
-for (const entry of ["index", "index.node"]) {
+for (const entry of ["index", "index.node", "index.runtime-node"]) {
   await writeFile(join(directory, entry + ".d.ts"), 'export * from "./' + entry + '.cjs";\n');
 }

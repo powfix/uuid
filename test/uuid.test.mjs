@@ -3,7 +3,9 @@ import {it} from "node:test";
 import {createRequire} from "node:module";
 import {runInNewContext} from "node:vm";
 import {UUID, UuidMap, Uint8ArrayUtils, format, isRfcUuid, isUuidEncoding, parse, parseNullable, tryParse} from "../dist/index.js";
-import {UUID as NodeUUID, toBuffer} from "../dist/index.node.js";
+import * as node from "../dist/index.node.js";
+
+const {UUID: NodeUUID, toBuffer} = node;
 
 const id = "00112233-4455-4677-8899-aabbccddeeff";
 const hex = "00112233445546778899aabbccddeeff";
@@ -80,6 +82,32 @@ it("keeps JSON, comparisons and database bytes in sync after every outward mutat
   assert.equal(uuid.toHex(), hex);
   assert.equal(JSON.stringify({id: uuid}), JSON.stringify({id}));
   assert.deepEqual(toBuffer(uuid), Buffer.from(bytes));
+});
+
+it("returns independent Node Buffers from existing instance calls and the standalone helper", () => {
+  const source = Buffer.from([255, ...bytes, 255]).subarray(1, 17);
+  const expected = Buffer.from(bytes);
+  const model = {uuid: NodeUUID.from(source)};
+  source.fill(0);
+  for (const value of [
+    model.uuid, new NodeUUID(hex), NodeUUID.fromString(id), NodeUUID.fromHex(hex), NodeUUID.fromBytes(bytes),
+    node.parse(bytes), node.tryParse(id), node.parseNullable(hex),
+  ]) {
+    const first = value.toBuffer();
+    const second = toBuffer(value);
+    assert.ok(Buffer.isBuffer(first));
+    assert.deepEqual(first, expected);
+    assert.deepEqual(second, expected);
+    first.fill(0);
+    assert.deepEqual(second, expected);
+    second.fill(255);
+    assert.deepEqual(value.toBuffer(), expected);
+    assert.equal(value.toString(), id);
+  }
+  for (const value of [NodeUUID.nil(), NodeUUID.max(), NodeUUID.v4(), node.v4(), NodeUUID.v7(), node.v7()]) {
+    assert.deepEqual(value.toBuffer(), Buffer.from(value.toBytes()));
+    assert.deepEqual(toBuffer(value), value.toBuffer());
+  }
 });
 
 it("accepts byte sources from another module copy and genuine uint8 views from a different realm", () => {
