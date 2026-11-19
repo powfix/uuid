@@ -29,10 +29,10 @@ it("provides self-contained packed ESM/CJS exports, strict consumer types and br
       const id = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
       for (const api of [shared, node]) {
         const map = new api.UuidMap([[api.UUID.from(id), "ok"]]);
-        if (!(map instanceof Map)) throw Error("native Map identity missing");
+        if ([...map.keys()][0] !== id) throw Error("canonical key missing");
         if (map.get(id.toUpperCase()) !== "ok") throw Error("map lookup failed");
         const set = new api.UuidSet([id]);
-        if (!(set instanceof Set)) throw Error("native Set identity missing");
+        if ([...set][0] !== id) throw Error("canonical value missing");
         if (set.union(new Set([api.UUID.from(id).toBytes()])).size !== 1) throw Error("union failed");
       }
       if (node.UUID.from(id).toBuffer().length !== 16) throw Error("node UUID missing");
@@ -64,7 +64,7 @@ it("provides self-contained packed ESM/CJS exports, strict consumer types and br
       stdin: {contents: `import {UUID, UuidMap, UuidSet} from "@powfix/uuid";
         const id = UUID.v4();
         const map = new UuidMap([[id.toBytes(), true]]);
-        if (!(map instanceof Map) || !(new UuidSet() instanceof Set)) throw Error("browser native identity failed");
+        if (map.getOrInsert(id, false) !== true) throw Error("browser UUID insertion failed");
         if (!map.get(id)) throw Error("browser lookup failed");
         const set = new UuidSet([id]);
         const other = new Set([id.toString()]);

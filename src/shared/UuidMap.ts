@@ -1,75 +1,59 @@
-import type {NullableUuidInput, UuidInput} from "./types";
-import {copyKey, uuidKey} from "./collections/key";
+import {formatUuid} from "./encoding";
+import type {CanonicalUuid, NullableUuidInput, UuidInput} from "./types";
 
-/**
- * A native Map subclass indexed by UUID value, independently of representation.
- * The first inserted key's representation and insertion order are preserved.
- * Mutable keys are copied on insertion and when returned; values are not copied.
- * Use instance methods: borrowed native methods bypass UUID indexing and copies.
- */
-export class UuidMap<K extends UuidInput = UuidInput, V = unknown> extends Map<K, V> {
-  readonly #keysByUuid = new Map<string, K>();
+/** A value-keyed map. Iteration always returns lowercase, dashed UUID strings. */
+export class UuidMap<V = unknown> implements Iterable<[CanonicalUuid, V]> {
+  readonly #entries = new Map<CanonicalUuid, V>();
 
-  constructor(entries?: Iterable<readonly [K, V]> | null) {
-    // Map(iterable) would call this.set before the private index is initialized.
-    super();
-    if (entries != null) {
-      for (const [key, value] of entries) this.set(key, value);
-    }
+  constructor(entries?: Iterable<readonly [UuidInput, V]> | null) {
+    if (entries != null) for (const [key, value] of entries) this.set(key, value);
   }
 
-  /** Insert or replace a value. Malformed UUID inputs leave the map unchanged. */
-  override set(key: K, value: V): this {
-    const index = uuidKey(key);
-    const existing = this.#keysByUuid.get(index);
-    if (existing !== undefined) return super.set(existing, value);
-    const stored = copyKey(key);
-    super.set(stored, value);
-    this.#keysByUuid.set(index, stored);
+  get size(): number { return this.#entries.size; }
+
+  set(key: UuidInput, value: V): this {
+    this.#entries.set(formatUuid(key), value);
     return this;
   }
 
-  /** Nullish lookup keys are absent; malformed non-nullish inputs throw. */
-  override get(key: NullableUuidInput): V | undefined {
-    if (key == null) return undefined;
-    const stored = this.#keysByUuid.get(uuidKey(key));
-    return stored === undefined ? undefined : super.get(stored);
+  get(key: NullableUuidInput): V | undefined {
+    return key == null ? undefined : this.#entries.get(formatUuid(key));
   }
 
-  override has(key: NullableUuidInput): boolean {
-    return key != null && this.#keysByUuid.has(uuidKey(key));
+  has(key: NullableUuidInput): boolean {
+    return key != null && this.#entries.has(formatUuid(key));
   }
 
-  override delete(key: NullableUuidInput): boolean {
-    if (key == null) return false;
-    const index = uuidKey(key);
-    const stored = this.#keysByUuid.get(index);
-    if (stored === undefined) return false;
-    this.#keysByUuid.delete(index);
-    return super.delete(stored);
+  delete(key: NullableUuidInput): boolean {
+    return key != null && this.#entries.delete(formatUuid(key));
   }
 
-  override clear(): void {
-    super.clear();
-    this.#keysByUuid.clear();
+  clear(): void { this.#entries.clear(); }
+
+  getOrInsert(key: UuidInput, defaultValue: V): V {
+    const id = formatUuid(key);
+    if (this.#entries.has(id)) return this.#entries.get(id) as V;
+    this.#entries.set(id, defaultValue);
+    return defaultValue;
   }
 
-  override *keys(): Generator<K, undefined, unknown> {
-    for (const key of super.keys()) yield copyKey(key);
-    return undefined;
+  getOrInsertComputed(key: UuidInput, callback: (key: CanonicalUuid) => V): V {
+    if (typeof callback !== "function") throw new TypeError("Expected a callback function");
+    const id = formatUuid(key);
+    if (this.#entries.has(id)) return this.#entries.get(id) as V;
+    const value = callback(id);
+    // set also replaces an entry inserted by the callback and preserves its position.
+    this.#entries.set(id, value);
+    return value;
   }
 
-  override *entries(): Generator<[K, V], undefined, unknown> {
-    for (const [key, value] of super.entries()) yield [copyKey(key), value];
-    return undefined;
-  }
+  keys() { return this.#entries.keys(); }
+  values() { return this.#entries.values(); }
+  entries() { return this.#entries.entries(); }
+  [Symbol.iterator]() { return this.entries(); }
 
-  override [Symbol.iterator](): Generator<[K, V], undefined, unknown> {
-    return this.entries();
-  }
-
-  override forEach(callbackfn: (value: V, key: K, map: UuidMap<K, V>) => void, thisArg?: unknown): void {
-    if (typeof callbackfn !== "function") throw new TypeError("Expected a callback function");
-    super.forEach((value, key) => callbackfn.call(thisArg, value, copyKey(key), this));
+  forEach(callback: (value: V, key: CanonicalUuid, map: this) => void, thisArg?: unknown): void {
+    if (typeof callback !== "function") throw new TypeError("Expected a callback function");
+    this.#entries.forEach((value, key) => callback.call(thisArg, value, key, this));
   }
 }
