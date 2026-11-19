@@ -46,10 +46,10 @@ export class UuidSet implements Iterable<CanonicalUuid> {
   }
 
   clear(): void { this.#values.clear(); }
-  keys() { return this.#values.keys(); }
-  values() { return this.#values.values(); }
-  entries() { return this.#values.entries(); }
-  [Symbol.iterator]() { return this.values(); }
+  keys(): IterableIterator<CanonicalUuid> { return this.#values.keys(); }
+  values(): IterableIterator<CanonicalUuid> { return this.#values.values(); }
+  entries(): IterableIterator<[CanonicalUuid, CanonicalUuid]> { return this.#values.entries(); }
+  [Symbol.iterator](): IterableIterator<CanonicalUuid> { return this.values(); }
 
   forEach(callback: (value: CanonicalUuid, key: CanonicalUuid, set: this) => void, thisArg?: unknown): void {
     if (typeof callback !== "function") throw new TypeError("Expected a callback function");

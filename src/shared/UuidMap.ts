@@ -47,10 +47,11 @@ export class UuidMap<V = unknown> implements Iterable<[CanonicalUuid, V]> {
     return value;
   }
 
-  keys() { return this.#entries.keys(); }
-  values() { return this.#entries.values(); }
-  entries() { return this.#entries.entries(); }
-  [Symbol.iterator]() { return this.entries(); }
+  // Use the ES2020 iterator interface in published declarations for TypeScript 5.5 consumers.
+  keys(): IterableIterator<CanonicalUuid> { return this.#entries.keys(); }
+  values(): IterableIterator<V> { return this.#entries.values(); }
+  entries(): IterableIterator<[CanonicalUuid, V]> { return this.#entries.entries(); }
+  [Symbol.iterator](): IterableIterator<[CanonicalUuid, V]> { return this.entries(); }
 
   forEach(callback: (value: V, key: CanonicalUuid, map: this) => void, thisArg?: unknown): void {
     if (typeof callback !== "function") throw new TypeError("Expected a callback function");

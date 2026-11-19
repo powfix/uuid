@@ -1,4 +1,7 @@
-import {UUID, UuidMap, UuidSet, type CanonicalUuid, type UuidSetLike} from "@powfix/uuid";
+import {
+  UUID, UuidMap, UuidSet, isRfcUuid, parse, parseNullable, tryParse,
+  type CanonicalUuid, type NullableUuidInput, type UuidInput, type UuidSetLike,
+} from "@powfix/uuid";
 
 const id: string = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const bytes = UUID.from(id).toBytes();
@@ -29,8 +32,6 @@ map.set(123, 1);
 map.set(bytes, "wrong");
 // @ts-expect-error numbers are not valid UUID set operands
 set.union(new Set([1]));
-
-import {parse, parseNullable, tryParse, isRfcUuid, type NullableUuidInput, type UuidInput} from "@powfix/uuid";
 
 declare const externalInput: unknown;
 declare const maybeInput: NullableUuidInput;

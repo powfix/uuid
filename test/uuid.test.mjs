@@ -13,7 +13,8 @@ const bytes = Uint8Array.of(0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x46, 0x77,
 it("parses every representation with one API and preserves all bits and offsets", () => {
   const padded = Uint8Array.of(255, ...bytes, 255);
   for (const input of [id, id.toUpperCase(), hex.toUpperCase(), bytes, padded.subarray(1, 17),
-    Buffer.from(padded).subarray(1, 17), parse(id), {toBytes: () => bytes}]) {
+    Buffer.from(padded).subarray(1, 17), parse(id), {toBytes: () => bytes},
+    Object.assign(() => {}, {toBytes: () => bytes})]) {
     assert.equal(format(input), id);
     assert.equal(tryParse(input).toHex(), hex);
     assert.equal(isUuidEncoding(input), true);

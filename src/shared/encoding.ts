@@ -27,7 +27,7 @@ export function readUuid(value: unknown): CanonicalUuid | undefined {
     if (value.length === 32 && hexPattern.test(value)) return dashed(value.toLowerCase());
     return undefined;
   }
-  if (value === null || typeof value !== "object") return undefined;
+  if (value === null || (typeof value !== "object" && typeof value !== "function")) return undefined;
   if (ArrayBuffer.isView(value)) return readBytes(value);
 
   // A different installation (including 0.x) can supply its bytes without sharing a prototype.

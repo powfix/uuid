@@ -75,17 +75,24 @@ it("provides self-contained packed ESM/CJS exports, strict consumer types and br
 
     for (const fixture of ["consumer-types", "consumer-node-types"]) {
       for (const ext of ["mts", "cts"]) copyFileSync(join(root, `test/${fixture}.ts`), join(directory, `consumer.${ext}`));
-      for (const lib of ["ES2020", "ESNext"]) {
+      const nodeTypes = fixture === "consumer-node-types";
+      const configurations = ["ES2020", "ESNext"].map(lib => ({
+        module: "NodeNext", moduleResolution: "NodeNext", lib: [lib, "DOM"], files: ["consumer.mts", "consumer.cts"],
+      }));
+      if (!nodeTypes) configurations.push({
+        module: "ESNext", moduleResolution: "Bundler", lib: ["ES2020"], files: ["consumer.mts"],
+      });
+      for (const {module, moduleResolution, lib, files} of configurations) {
         writeFileSync(join(directory, "tsconfig.json"), JSON.stringify({
-          compilerOptions: {module: "NodeNext", moduleResolution: "NodeNext", target: "ES2020", lib: [lib, "DOM"], strict: true, skipLibCheck: false, noEmit: true,
-            types: fixture === "consumer-node-types" ? ["node"] : [],
+          compilerOptions: {module, moduleResolution, target: "ES2020", lib, strict: true, skipLibCheck: false, noEmit: true,
+            types: nodeTypes ? ["node"] : [],
             typeRoots: [dirname(dirname(require.resolve("@types/node/package.json")))]},
-          files: ["consumer.mts", "consumer.cts"]
+          files,
         }));
         try {
           execFileSync(process.execPath, [require.resolve("typescript/bin/tsc"), "-p", join(directory, "tsconfig.json")], {cwd: directory});
         } catch (error) {
-          throw new Error(`${fixture} (${lib}): ${error.stdout} ${error.stderr}`);
+          throw new Error(`${fixture} (${moduleResolution}, ${lib}): ${error.stdout} ${error.stderr}`);
         }
       }
     }
