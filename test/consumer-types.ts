@@ -29,3 +29,20 @@ map.set(123, 1);
 map.set(bytes, "wrong");
 // @ts-expect-error numbers are not valid UUID set operands
 set.union(new Set([1]));
+
+import {parse, parseNullable, tryParse, isRfcUuid, type NullableUuidInput, type UuidInput} from "@powfix/uuid";
+
+declare const externalInput: unknown;
+declare const maybeInput: NullableUuidInput;
+const parsed: UUID = parse(externalInput);
+const opt: UUID | undefined = tryParse(externalInput);
+const maybe: UUID | null | undefined = parseNullable(maybeInput);
+const optionalNull: null = UUID.from(null);
+const optionalUndefined: undefined = parseNullable(undefined);
+const canonical: CanonicalUuid = parsed.toString();
+if (isRfcUuid(externalInput, {versions: [4, 7]})) {
+  const supported: UuidInput = externalInput;
+  map.get(supported);
+}
+const olderValue: UuidInput = {toBytes: () => bytes};
+map.get(olderValue);

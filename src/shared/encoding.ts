@@ -1,4 +1,5 @@
 import type {CanonicalUuid} from "./types";
+import {bytesToHex} from "./utils/Uint8ArrayUtils";
 
 const hexPattern = /^[0-9a-f]{32}$/i;
 const dashedPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -17,10 +18,7 @@ export function readBytes(value: unknown): CanonicalUuid | undefined {
   if (!ArrayBuffer.isView(value) || typedArrayName.call(value) !== "Uint8Array" ||
       typedArrayLength.call(value) !== 16) return undefined;
   // Subarray offsets and lengths are respected by the typed array's own indexed access.
-  const bytes = value as Uint8Array;
-  let hex = "";
-  for (let i = 0; i < 16; i++) hex += bytes[i].toString(16).padStart(2, "0");
-  return dashed(hex);
+  return dashed(bytesToHex(value as Uint8Array, 16));
 }
 
 export function readUuid(value: unknown): CanonicalUuid | undefined {
@@ -35,14 +33,9 @@ export function readUuid(value: unknown): CanonicalUuid | undefined {
   // A different installation (including 0.x) can supply its bytes without sharing a prototype.
   try {
     const source = value as {toBytes?: () => unknown};
-    return typeof source.toBytes === "function" ? readBytes(source.toBytes()) : undefined;
+    const toBytes = source.toBytes;
+    return typeof toBytes === "function" ? readBytes(toBytes.call(source)) : undefined;
   } catch {
     return undefined;
   }
-}
-
-export function formatUuid(value: unknown): CanonicalUuid {
-  const result = readUuid(value);
-  if (result === undefined) throw new TypeError("Expected a dashed UUID, 32 hexadecimal digits, or 16 UUID bytes");
-  return result;
 }

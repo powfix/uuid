@@ -35,7 +35,7 @@ it("provides self-contained packed ESM/CJS exports, strict consumer types and br
         if ([...set][0] !== id) throw Error("canonical value missing");
         if (set.union(new Set([api.UUID.from(id).toBytes()])).size !== 1) throw Error("union failed");
       }
-      if (node.UUID.from(id).toBuffer().length !== 16) throw Error("node UUID missing");
+      if (node.toBuffer(node.UUID.parse(id)).length !== 16) throw Error("node UUID missing");
       if (shared.UuidMap !== node.UuidMap) throw Error("duplicate entry-point collections");
       if (!shared.UUID.equals(node.UUID.from(id), id)) throw Error("entry-point UUID mismatch");
     `;

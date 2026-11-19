@@ -1,4 +1,4 @@
-import {formatUuid} from "./encoding";
+import {format} from "./UUID";
 import type {CanonicalUuid, NullableUuidInput, UuidInput} from "./types";
 
 export interface UuidSetLike<T = UuidInput> {
@@ -33,16 +33,16 @@ export class UuidSet implements Iterable<CanonicalUuid> {
   get size(): number { return this.#values.size; }
 
   add(value: UuidInput): this {
-    this.#values.add(formatUuid(value));
+    this.#values.add(format(value));
     return this;
   }
 
   has(value: NullableUuidInput): boolean {
-    return value != null && this.#values.has(formatUuid(value));
+    return value != null && this.#values.has(format(value));
   }
 
   delete(value: NullableUuidInput): boolean {
-    return value != null && this.#values.delete(formatUuid(value));
+    return value != null && this.#values.delete(format(value));
   }
 
   clear(): void { this.#values.clear(); }

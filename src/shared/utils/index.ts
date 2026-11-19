@@ -1,1 +1,1 @@
-export * from "./Uint8ArrayUtils";
+export {Uint8ArrayUtils} from "./Uint8ArrayUtils";

@@ -1,6 +1,8 @@
-import {UUID} from "../UUID";
-import {UuidString} from "./UuidString";
+/** UUID values from this package or another installation, including 0.x. */
+export interface UuidByteSource {
+  toBytes(): Uint8Array;
+}
 
-export type UuidInput = string | UuidString | Uint8Array | UUID;
+export type UuidInput = string | Uint8Array | UuidByteSource;
 export type NullableUuidInput = UuidInput | null | undefined;
-export type NonNullableUuidInput = NonNullable<NullableUuidInput>;
+export type NonNullableUuidInput = UuidInput;
