@@ -25,6 +25,9 @@ it("provides self-contained packed ESM/CJS exports, strict consumer types and br
     const packageDir = join(directory, "node_modules/@powfix/uuid");
     mkdirSync(packageDir, {recursive: true});
     execFileSync("tar", ["-xzf", join(directory, packed[0].filename), "--strip-components=1", "-C", packageDir]);
+    const nested = join(directory, "other/node_modules/@powfix/uuid");
+    mkdirSync(nested, {recursive: true});
+    execFileSync("tar", ["-xzf", join(directory, packed[0].filename), "--strip-components=1", "-C", nested]);
     const body = `
       const id = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
       for (const api of [shared, node]) {
@@ -42,6 +45,33 @@ it("provides self-contained packed ESM/CJS exports, strict consumer types and br
     writeFileSync(join(directory, "consumer.mjs"), `import * as shared from "@powfix/uuid"; import * as node from "@powfix/uuid/node"; ${body}`);
     writeFileSync(join(directory, "consumer.cjs"), `const shared = require("@powfix/uuid"); const node = require("@powfix/uuid/node"); ${body}`);
     for (const filename of ["consumer.mjs", "consumer.cjs"]) execFileSync(process.execPath, [join(directory, filename)], {cwd: directory});
+
+    writeFileSync(join(directory, "mixed.mjs"), `
+      import assert from "node:assert/strict";
+      import {createRequire} from "node:module";
+      import {UUID, UuidMap, UuidSet, parse, v4, v7} from "@powfix/uuid";
+      import {UUID as NodeUUID, toBuffer} from "@powfix/uuid/node";
+      const require = createRequire(import.meta.url);
+      const common = require("@powfix/uuid");
+      const node = require("@powfix/uuid/node");
+      const other = createRequire(new URL("./other/consumer.cjs", import.meta.url))("@powfix/uuid");
+      assert.equal(UUID, common.UUID);
+      assert.equal(UUID, NodeUUID);
+      assert.equal(UUID, node.UUID);
+      assert.equal(UuidMap, node.UuidMap);
+      assert.equal(UuidSet, common.UuidSet);
+      assert.equal(v4().version(), 4);
+      assert.equal(v7().version(), 7);
+      const foreign = other.parse("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
+      assert.notEqual(UUID, other.UUID);
+      const local = parse(foreign);
+      assert.ok(local instanceof node.UUID);
+      assert.equal(local.equals(other.parse(local)), true);
+      assert.deepEqual(toBuffer(foreign), Buffer.from(local.toBytes()));
+      assert.equal(new UuidMap([[foreign, 1]]).get(local), 1);
+      assert.equal(new other.UuidSet([local]).has(foreign), true);
+    `);
+    execFileSync(process.execPath, [join(directory, "mixed.mjs")], {cwd: directory});
 
     for (const fixture of ["consumer-types", "consumer-node-types"]) {
       for (const ext of ["mts", "cts"]) copyFileSync(join(root, `test/${fixture}.ts`), join(directory, `consumer.${ext}`));

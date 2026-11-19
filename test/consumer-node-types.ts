@@ -8,3 +8,12 @@ const map = new UuidMap([[buffer, 1]]);
 const keys: CanonicalUuid[] = [...map.keys()];
 map.get(id);
 const ids: CanonicalUuid[] = [...new UuidSet([buffer, id])];
+
+import sharedCjs = require("@powfix/uuid");
+import nodeCjs = require("@powfix/uuid/node");
+import {parse, type UuidMap as EsmMap} from "@powfix/uuid";
+
+const mixed: UUID = sharedCjs.parse(id);
+const otherDirection: nodeCjs.UUID = parse(mixed);
+const sameMap: EsmMap<number> = new nodeCjs.UuidMap<number>();
+const stringFromEither: CanonicalUuid = sharedCjs.format(otherDirection);

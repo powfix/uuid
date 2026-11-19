@@ -12,7 +12,8 @@ async function declarationFiles(directory) {
   return files;
 }
 
-const files = await declarationFiles(fileURLToPath(new URL("../dist", import.meta.url)));
+const directory = fileURLToPath(new URL("../dist", import.meta.url));
+const files = await declarationFiles(directory);
 const declarations = new Set(files);
 for (const path of files) {
   const text = await readFile(path, "utf8");
@@ -28,4 +29,9 @@ for (const path of files) {
   const commonJs = esm.replace(/((?:from\s+|import\()["']\.[^"']*)\.js(["'])/g, "$1.cjs$2");
   await writeFile(path, esm);
   await writeFile(path.replace(/\.d\.ts$/, ".d.cts"), commonJs);
+}
+
+// Both module formats must refer to the same branded string and private class fields.
+for (const entry of ["index", "index.node"]) {
+  await writeFile(join(directory, entry + ".d.ts"), 'export * from "./' + entry + '.cjs";\n');
 }
