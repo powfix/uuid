@@ -1,186 +1,112 @@
 # @powfix/uuid
 
-UUID creation, conversion and comparison, plus maps and sets indexed by UUID value.
-The package provides ESM, CommonJS and TypeScript declarations, with no runtime dependencies.
+Parse UUIDs from strings, bytes and existing UUID objects. The same immutable value works in browsers, React Native and Node.js. The package includes UUIDv4 and UUIDv7 generators, value-keyed maps and sets, and TypeScript declarations. It has zero runtime dependencies.
 
 ```sh
 npm install @powfix/uuid
 ```
 
-```ts
-import {UUID, UuidMap, UuidSet, type UuidInput} from "@powfix/uuid";
-
-const id = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
-const bytes = UUID.from(id).toBytes();
-
-UUID.equals(id, id.toUpperCase(), bytes); // true
-
-const users = new UuidMap<UuidInput, string>();
-users.set(id, "Alice");
-users.get(bytes);                       // "Alice"
-users.set(id.toUpperCase(), "Updated"); // replaces the existing value
-users.size;                            // 1
-[...users.keys()];                      // [id] (first spelling retained)
-
-const selected = new UuidSet<string>([id]);
-selected.has(bytes);                    // true
-selected.delete(id.toUpperCase());      // true
-```
-
-For Node.js, the optional `UUID` subclass adds `toBuffer()`:
+## Start with parse
 
 ```ts
-import {UUID, UuidMap, UuidSet} from "@powfix/uuid/node";
-const id = UUID.v4();
-const selected = new UuidSet([id]);
-selected.has(id.toBuffer()); // true
+import {parse, tryParse, parseNullable} from "@powfix/uuid";
+
+const id = parse("00112233445546778899AABBCCDDEEFF");
+id.toString();              // "00112233-4455-4677-8899-aabbccddeeff"
+const bytes = id.toBytes(); // an independent Uint8Array of 16 bytes
+parse(bytes).equals(id);    // true
+JSON.stringify({id});       // {"id":"00112233-4455-4677-8899-aabbccddeeff"}
+
+tryParse("incomplete");     // undefined
+parseNullable(null);        // null
+parseNullable(undefined);   // undefined
 ```
 
-```js
-const {UUID, UuidMap, UuidSet} = require("@powfix/uuid");
-```
-
-Both entry points expose the same collection classes. The root entry is browser-compatible
-and does not import Node.js modules. Built JavaScript targets ES2020; `UUID.v4()` requires
-`globalThis.crypto.getRandomValues`. Use a runtime providing that Web Crypto API.
-
-## UUID input and comparison
-
-`UuidInput` accepts UUID strings (32 hexadecimal characters or the canonical
-8-4-4-4-12 format), `Uint8Array`, Node.js `Buffer`, and `UUID` instances.
-Byte inputs must contain exactly 16 bytes. String case and hyphens do not affect equality.
-UUIDs are [128-bit identifiers](https://www.rfc-editor.org/rfc/rfc9562.html#section-4).
-
-`UUID.equals(a, b, ...rest)` requires at least two inputs and tests whether **all**
-UUID values are equal. A nullish input makes the result false, including `equals(null, null)`.
-It is not an array-membership callback; use `ids.some(id => UUID.equals(id, target))`.
-
-The collections accept nil, max and other correctly encoded 128-bit UUID values.
-They do not add version/variant restrictions.
-The existing `UUID.isValid` API additionally checks the RFC variant and versions 1–5;
-that validation policy is separate from parsing and has not changed in this release.
-The collections reject malformed strings and byte arrays before indexing them.
-The existing `UUID` parsing and validation APIs are unchanged.
-
-## Collection contract
-
-`UuidMap<K extends UuidInput = UuidInput, V = unknown>` and
-`UuidSet<K extends UuidInput = UuidInput>` extend native `Map<K, V>` and `Set<K>`:
-
-| API | UuidMap | UuidSet |
+| When you need to… | Use | On malformed input |
 | --- | --- | --- |
-| Create | `new UuidMap(entries?)` | `new UuidSet(values?)` |
-| Write | `set(key, value)` | `add(value)` |
-| Read/remove | `get`, `has`, `delete`, `clear`, `size` | `has`, `delete`, `clear`, `size` |
-| Iterate | `keys`, `values`, `entries`, `forEach`, `Symbol.iterator` | same |
+| Read a required ID | `parse(value)` | Throws `TypeError`, including for `null` and `undefined` |
+| Read user input that may be invalid | `tryParse(value)` | Returns `undefined` |
+| Read an optional DB or API field | `parseNullable(value)` | Preserves `null` and `undefined`. Other malformed inputs throw `TypeError` |
+| Get just the canonical string | `format(value)` | Throws `TypeError` |
 
-Constructors accept iterables, `null` or `undefined`. Write methods are chainable.
-Lookup and deletion accept any UUID representation independently of `K`.
-Nullish lookup arguments return `undefined` (`get`) or `false` (`has`/`delete`).
-Nullish writes and malformed non-nullish inputs throw. Failed writes leave the collection unchanged.
+The `UUID` class provides the same helpers as static methods, such as `UUID.parse(value)`. `UUID.from(value)` is the null-preserving convenience method. `new UUID(value)` also validates its input.
 
-The first inserted key's representation and insertion order are preserved. Replacing
-an existing value does not move it; deleting and re-adding it places it last.
-`forEach` receives `(value, key, collection)` for maps or `(value, value, collection)`
-for sets and supports `thisArg`. Iteration remains live when entries are added/deleted.
-Map values are stored and returned by reference, including `undefined` values.
+Accepted inputs are exactly 32 hexadecimal digits, the 36-character `8-4-4-4-12` form, a 16-byte `Uint8Array` (including a Node `Buffer`), or an object with a `toBytes()` method returning such a view. Both string forms accept either letter case. Whitespace, misplaced hyphens, incomplete pairs and other byte lengths fail validation. Byte views respect their offsets. UUID instances from earlier releases and separate package installations can be passed directly.
 
-### Mutable keys
+`id.toString()` and `id.toJSON()` return a lowercase, dashed `CanonicalUuid` string. `id.toHex()` returns the 32-digit form. Both `id.toBytes()` and the `id.bytes` getter return fresh copies. For generic hex data of any length, `Uint8ArrayUtils.fromHex(text)` and `Uint8ArrayUtils.toHex(bytes)` convert complete byte pairs.
 
-Mutable UUID keys are copied both on insertion and on output (`keys`, `entries`,
-iteration and `forEach`). Mutating an input buffer, `UUID.bytes`, or a returned key
-cannot corrupt the collection's stored key. A mutated input now represents a different
-UUID, so looking it up uses its **current** bytes. String spelling is preserved;
-Buffer outputs remain Buffers, and Node UUID outputs retain `toBuffer()`.
-UUID subclasses are copied via their constructor's static `from` factory.
-Typed-array subclasses follow their `map`/species copy behavior.
-
-Mutable output keys are fresh copies; compare them with `UUID.equals`, not object identity.
-
-### Relationship to native collections
-
-These classes use native backing storage: `instanceof Map` / `instanceof Set`, native
-collection detection, `size`, iteration, and APIs receiving `Map<K, V>` / `Set<K>` work.
-`Object.prototype.toString` reports `[object Map]` / `[object Set]`. A private canonical
-UUID index makes lookups independent of the input representation without scanning keys.
-
-Call instance methods (`map.set(...)`, `set.union(...)`) to keep UUID semantics.
-Explicitly borrowing native methods, such as `Map.prototype.set.call(map, ...)`, bypasses
-the overrides and is **unsupported**: writes can desynchronize the UUID index, native
-lookups use identity equality, and native iterators expose the stored mutable keys.
-Native Set operations called directly through `Set.prototype` also bypass UUID equality.
-An ordinary Set used as the receiver of an operation keeps that Set's native semantics;
-use a UuidSet receiver when the operation needs UUID equality.
-
-`new Map(uuidMap)` / `new Set(uuidSet)` create ordinary collections using native equality.
-Native structured cloning likewise produces ordinary collections and loses UUID semantics;
-UUID instance keys also lose their class prototype during cloning. Use
-`new UuidMap(uuidMap)` / `new UuidSet(uuidSet)` to preserve the collection contract.
-Libraries that only inspect or invoke instance methods are compatible; libraries that
-borrow native methods or depend on key object identity require separate consideration.
-
-UUID inputs remain mandatory. Native-compatible set-like method signatures can accept
-unknown or non-UUID element types, but every operand key is parsed at runtime and
-non-UUID values throw. Inheritance does not make these general-purpose collections.
-
-## Set operations
+## Generate, compare and validate
 
 ```ts
-const a = new UuidSet<string>([id]);
-const b = new Set([UUID.from(id).toBytes()]);
+import {UUID, v4, v7, isUuidEncoding, isRfcUuid} from "@powfix/uuid";
 
-a.union(b).size;          // 1, result: UuidSet<string | Uint8Array>
-a.intersection(b);       // UuidSet<string>, retaining a's representation
-a.difference(b).size;    // 0
-a.symmetricDifference(b).size; // 0
-a.isSubsetOf(b);         // true
-a.isSupersetOf(b);       // true
-a.isDisjointFrom(b);     // false
+const random = v4();            // also UUID.v4()
+const timeOrdered = v7();       // also UUID.v7()
+UUID.equals(random, random.toBytes());            // true
+isRfcUuid(random, {versions: [4]});               // true
+isRfcUuid(timeOrdered, {versions: [7]});          // true
+isRfcUuid(random.toHex(), {encoding: "dashed"});  // false
+isUuidEncoding(UUID.nil());                      // true
 ```
 
-Operands may be finite UUID iterables or set-like objects with `size`, `has`, and `keys`
-(including native Map keys). All operand keys are enumerated and validated; their own
-`has` implementation is not used to determine UUID equality. Invalid operands/keys throw.
-Operations do not mutate either operand and normalize duplicate UUID representations.
+- `parse` and `isUuidEncoding` accept every correctly encoded 128-bit value, including padded binary identifiers. They preserve the original bits.
+- `isRfcUuid` accepts the RFC variant with versions 1–8, plus the special nil and max UUIDs. Setting `versions` restricts the accepted versions and excludes those special values by default. Use `allowNil` or `allowMax` to set either policy explicitly. `encoding: "dashed"` and `encoding: "hex"` restrict the input to that string form.
+- The existing `UUID.isValid`, `isValidString`, `isValidHex`, `isValidBytes` and instance `isValid()` keep the older RFC variant and version 1–5 policy. Use `isRfcUuid` for current RFC values or an explicit domain policy.
+- `UUID.compare(a, b)` and `id.compare(other)` return `-1`, `0` or `1` in unsigned byte order. `UUID.equals(a, b, ...others)` checks that all compared values match. A nullish argument makes the comparison false. Invalid non-nullish inputs encountered during comparison throw. `id.version()` returns the raw version nibble. `UUID.nil()` and `UUID.max()` return the two special values.
 
-`intersection` and `difference` retain the receiver's type and insertion order.
-`union` keeps receiver values first and appends new operand values in operand order.
-`symmetricDifference` emits receiver-only values followed by operand-only values.
-All four return a `UuidSet`, including on runtimes without native Set composition methods.
-They return the package's UuidSet even when invoked on a further subclass; custom
-`Symbol.species` constructors are not consulted.
+The published JavaScript targets ES2020. Only UUID generation requires `globalThis.crypto.getRandomValues`. A React Native application should initialize a secure Web Crypto provider in its entry file before generating IDs. UUIDv7 records the Unix millisecond in the first 48 bits and draws independent random bits per call. IDs from different milliseconds sort by their encoded time. Within a millisecond their order is random, and a backward clock adjustment is reflected in the next timestamp. [RFC 9562, UUIDv7](https://www.rfc-editor.org/rfc/rfc9562.html#section-5.7)
 
-### TypeScript and intersection
+## Node.js and database bytes
 
-Keep the `UuidSet` type and UUID-typed operands for UUID set operations. Its UUID overload
-returns `UuidSet<K>` from `intersection`, because a string UUID may match bytes while the
-result still contains the receiver's strings.
+```ts
+import {parse, toBuffer} from "@powfix/uuid/node";
 
-Native TypeScript `Set<K>.intersection` declares `Set<K & U>`, assuming native equality.
-The compatibility overload must retain that declaration for native Set assignability.
-If you widen a UuidSet to `Set<K>` / `ReadonlySet<K>`, or pass a generically typed set-like
-operand not known to contain UUID inputs, TypeScript uses that native signature. It can
-infer an incorrect intersection type for equivalent UUIDs in different representations.
-The runtime still returns a UuidSet containing the receiver's representations. Do not
-rely on that narrowed type; retain the UuidSet type and declare operands as UUID inputs.
-For generic code, `new UuidSet<UuidInput>(receiver)` and `new UuidSet<UuidInput>(operand)`
-provide explicit UUID collection types before performing the operation.
+const rowKey = toBuffer("00112233-4455-4677-8899-aabbccddeeff");
+const id = parse(rowKey);
+toBuffer(id).equals(rowKey); // true
+```
 
-## Development and packaging
+`toBuffer(value)` accepts the same representations and returns an independent 16-byte Node `Buffer` in network byte order. Both entry points expose the same `UUID` class. Node `import` and `require` within one installation share their classes and TypeScript types. The browser root uses no Node modules. Across separate installations, use value comparison or pass a canonical string when a plain wire value is needed.
+
+## UUID maps and sets
+
+```ts
+import {UuidMap, UuidSet, parse} from "@powfix/uuid";
+
+const text = "AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA";
+const id = parse(text);
+const users = new UuidMap<string>();
+users.set(text, "Alice");
+users.get(id.toBytes());                   // "Alice"
+users.getOrInsert(id, "fallback");         // "Alice"
+users.getOrInsertComputed(id, key => key); // "Alice"
+[...users.keys()];                         // ["aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"]
+
+const selected = new UuidSet([text, id, id.toBytes()]);
+selected.size;                             // 1
+selected.intersection(new Set([id])).has(text); // true
+```
+
+`UuidMap<V>` and `UuidSet` accept mixed UUID representations for reads and writes. Iteration yields canonical strings in insertion order. Replacing an entry keeps its position. Map values retain their identity, including a stored `undefined`. `getOrInsertComputed` calls its factory only for a missing key and supplies the canonical string. Nullish lookup or deletion returns `undefined` or `false`. A malformed key or nullish write throws.
+
+Both collections provide `size`, `clear`, `delete`, `has`, `keys`, `values`, `entries`, `forEach` and live iteration. `UuidSet` also supports `union`, `intersection`, `difference`, `symmetricDifference`, `isSubsetOf`, `isSupersetOf` and `isDisjointFrom`. Set operations accept finite UUID iterables or set-like objects with `size`, `has` and `keys`, including native Map keys. Results retain receiver order and append new operand keys in operand order. A malformed operand key throws.
+
+## Moving from 0.x
+
+| 0.x usage | 1.0 usage |
+| --- | --- |
+| `UUID.from(x)` for known or optional inputs | This remains available. Choose `parse` for a required ID or `tryParse` for fallible input. The constructor and all factories now reject malformed encodings. |
+| `UUID.from(x).toBuffer()` or `row.uuid.toBuffer()` | Import `toBuffer` from `@powfix/uuid/node` and call `toBuffer(x)` or `toBuffer(row.uuid)`. Existing database bytes and JSON strings keep their representation. |
+| Subclass-specific static factories | The built-in factories return the shared `UUID` type. Construct your own wrapper explicitly when an application attaches additional behavior. |
+| Mutating `id.bytes` | Edit a copy from `id.toBytes()` and pass it to `parse` to create the new value. |
+| `new UuidMap<K, V>()` or `new UuidSet<K>()` | Write `new UuidMap<V>()` or `new UuidSet()`. Iteration yields `CanonicalUuid`. Keep original spelling or input objects in the map value if the application displays them. |
+| Native Map/Set subclasses, `instanceof Map`, or native-only consumers | The 1.0 collections own their storage. Accept their iterable or method interface, or use `new Map(uuidMap)` / `new Set(uuidSet)` for a native snapshot. Convert to entries before structured cloning and reconstruct the UUID collection afterwards. |
+| Passing UUIDs through libraries with different installed versions | 1.0 accepts older objects via `toBytes()`. When a 0.x library receives a 1.0 value, pass `id.toString()` or `id.toBytes()`. Check known UUID fields at model serialization boundaries. |
+| `UUID.from(null)` on 0.2.17 | `parse(null)` throws. `parseNullable(null)` and `UUID.from(null)` return `null`, as in 0.2.19 and 0.3. |
+
+## Development
 
 ```sh
-npm install
-npm test       # build, behavior tests, packed ESM/CJS imports, types and browser bundle
-npm pack       # runs the same checks before producing a tarball
+npm test   # build and exercise runtime, packaged imports, browser code and strict consumer types
+npm pack   # run prepack checks and create the release tarball
 ```
-
-Published files include ESM/CJS runtime modules, `.d.ts` and `.d.cts` declarations,
-this README, the license and authors. Tests and build scripts are development-only.
-
-### Compatibility notes
-
-The new collections use a canonical private index for efficient UUID-value lookup.
-They do not require callers to convert inputs before comparison or lookup.
-Collection-local validation rejects malformed hex, misplaced hyphens and byte arrays
-whose length is not 16, preventing invalid keys from colliding in the UUID index.
-No changes to the existing `UUID` parsing or nullish `UUID.from` behavior are required.
