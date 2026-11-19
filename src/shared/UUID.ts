@@ -19,6 +19,15 @@ const legacyPolicy: UuidPolicy = {versions: [1, 2, 3, 4, 5]};
 
 type ParsedNullable<T extends NullableUuidInput> = T extends null | undefined ? T : UUID;
 
+function randomBytes(version: 4 | 7): Uint8Array {
+  const crypto = globalThis.crypto;
+  if (typeof crypto?.getRandomValues !== "function") throw new Error("UUID generation requires crypto.getRandomValues");
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6] & 0x0f) | (version << 4);
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  return bytes;
+}
+
 /** An immutable 128-bit value. Its canonical string is also its JSON representation. */
 export class UUID {
   readonly #value: CanonicalUuid;
@@ -115,12 +124,19 @@ export class UUID {
   static nil(): UUID { return UUID.parse(nil); }
   static max(): UUID { return UUID.parse(max); }
 
-  static v4(): UUID {
-    const crypto = globalThis.crypto;
-    if (typeof crypto?.getRandomValues !== "function") throw new Error("UUID generation requires crypto.getRandomValues");
-    const bytes = crypto.getRandomValues(new Uint8Array(16));
-    bytes[6] = (bytes[6] & 0x0f) | 0x40;
-    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  static v4(): UUID { return UUID.fromBytes(randomBytes(4)); }
+
+  /** RFC 9562 v7. IDs in the same millisecond use independent random bits. */
+  static v7(): UUID {
+    let timestamp = Date.now();
+    if (!Number.isSafeInteger(timestamp) || timestamp < 0 || timestamp > 0xffffffffffff) {
+      throw new RangeError("UUIDv7 requires an unsigned 48-bit Unix timestamp in milliseconds");
+    }
+    const bytes = randomBytes(7);
+    for (let i = 5; i >= 0; i--) {
+      bytes[i] = timestamp % 256;
+      timestamp = Math.floor(timestamp / 256);
+    }
     return UUID.fromBytes(bytes);
   }
 
@@ -155,4 +171,4 @@ export class UUID {
 }
 
 /** The same helpers are available without a class import. */
-export const {parse, tryParse, parseNullable, format, isUuidEncoding, isRfcUuid} = UUID;
+export const {parse, tryParse, parseNullable, format, isUuidEncoding, isRfcUuid, v4, v7} = UUID;
