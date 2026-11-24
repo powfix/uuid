@@ -8,7 +8,7 @@ export type {NodeUuidConstructor} from "./node/uuid.types";
 export type UUID = NodeUuid;
 
 function nodeConstructor(): NodeUuidConstructor {
-  Object.defineProperty(SharedUUID, "toBuffer", {configurable: true, writable: true, value: toBuffer});
+  Object.defineProperty(SharedUUID, "toBuffer", {configurable: false, writable: false, value: toBuffer});
   Object.defineProperty(SharedUUID.prototype, "toBuffer", {
     configurable: true,
     writable: true,

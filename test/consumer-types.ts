@@ -54,6 +54,10 @@ if (isRfcUuid(externalInput, {versions: [4, 7]})) {
 const olderValue: UuidInput = {toBytes: () => bytes};
 map.get(olderValue);
 const strictAlias: typeof UUID.parse = parseUuid;
+// @ts-expect-error static functions are readonly
+UUID.toHex = toHex;
+// @ts-expect-error factories are readonly
+UUID.parse = parseUuid;
 const requiredUuid: UUID = strictAlias(externalInput);
 const optionalHex: string | undefined = tryParse(externalInput)?.toHex();
 const fromNull: null = from(null);

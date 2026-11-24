@@ -14,6 +14,18 @@ const hex = "00112233445546778899aabbccddeeff";
 const bytes = Uint8Array.of(0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x46, 0x77,
   0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff);
 
+it("protects every static UUID function against assignment, redefinition and deletion", () => {
+  const replacement = () => {};
+  for (const name of Object.getOwnPropertyNames(NodeUUID)) {
+    const method = NodeUUID[name];
+    if (typeof method !== "function") continue;
+    assert.equal(Reflect.set(NodeUUID, name, replacement), false, name);
+    assert.equal(Reflect.defineProperty(NodeUUID, name, {value: replacement}), false, name);
+    assert.equal(Reflect.deleteProperty(NodeUUID, name), false, name);
+    assert.equal(NodeUUID[name], method);
+  }
+});
+
 it("shares the strict parser and recognizes genuine local UUIDs by their stored value", () => {
   assert.equal(parseUuid, parse);
   assert.equal(parseUuid, UUID.parse);

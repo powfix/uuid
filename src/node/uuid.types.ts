@@ -6,7 +6,7 @@ export interface NodeUuid extends SharedUUID {}
 
 type UuidFactory = "parse" | "fromString" | "fromHex" | "fromBytes" | "nil" | "max" | "v4" | "v7";
 type RequiredFactories = {
-  [K in UuidFactory]: (...args: Parameters<(typeof SharedUUID)[K]>) => NodeUuid;
+  readonly [K in UuidFactory]: (...args: Parameters<(typeof SharedUUID)[K]>) => NodeUuid;
 };
 
 export interface NodeUuidConstructor extends
@@ -14,6 +14,6 @@ export interface NodeUuidConstructor extends
   new(input: unknown): NodeUuid;
   readonly prototype: NodeUuid;
   readonly from: NullableParser<NodeUuid>;
-  parseNullable: NullableParser<NodeUuid>;
-  tryParse(input: unknown): NodeUuid | undefined;
+  readonly parseNullable: NullableParser<NodeUuid>;
+  readonly tryParse: (input: unknown) => NodeUuid | undefined;
 }

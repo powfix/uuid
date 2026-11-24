@@ -30,7 +30,7 @@ parseNullable(undefined);   // undefined
 | Read an optional DB or API field | `parseNullable(value)` | Preserves `null` and `undefined`. Other malformed inputs throw `TypeError` |
 | Get just the canonical string | `format(value)` | Throws `TypeError` |
 
-`parseUuid`, `parse` and `UUID.parse` are the same function. Use `tryParse(value)?.toHex()` when a malformed or missing input should produce `undefined`. `from` and `UUID.from` are aliases of `parseNullable`. `new UUID(value)` also validates its input.
+`parseUuid`, `parse` and `UUID.parse` are the same function. The static functions on `UUID` are read-only in TypeScript and at runtime. Use `tryParse(value)?.toHex()` when a malformed or missing input should produce `undefined`. `from` and `UUID.from` are aliases of `parseNullable`. `new UUID(value)` also validates its input.
 
 Accepted inputs are exactly 32 hexadecimal digits, the 36-character `8-4-4-4-12` form, a 16-byte `Uint8Array` (including a Node `Buffer`), or an object with a `toBytes()` method returning such a view. Both string forms accept either letter case. Whitespace, misplaced hyphens, incomplete pairs and other byte lengths fail validation. Byte views respect their offsets. UUID instances from earlier releases and separate package installations can be passed directly.
 

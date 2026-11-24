@@ -10,6 +10,14 @@ import type {NodeUuidConstructor} from "@powfix/uuid/node";
 const id = UUID.from("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
 const buffer: Buffer = toBuffer(id);
 const factory: NodeUuidConstructor = UUID;
+// @ts-expect-error the Node converter is readonly
+nodeCjs.UUID.toBuffer = toBuffer;
+// @ts-expect-error Node factories are readonly
+factory.fromBytes = fromBytes;
+// @ts-expect-error the nullable parser is readonly
+UUID.parseNullable = parseNullable;
+// @ts-expect-error the fallible parser is readonly
+UUID.tryParse = tryParse;
 const factoryBytes: Buffer = factory.parse(id).toBuffer();
 const convert: typeof toBuffer = UUID.toBuffer;
 const staticBuffer: Buffer = convert(id.toString());
