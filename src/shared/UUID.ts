@@ -22,9 +22,13 @@ export class UUID {
   static fromBytes = functions.fromBytes;
   static isUuidEncoding = functions.isUuidEncoding;
   static isRfcUuid = functions.isRfcUuid;
+  /** @deprecated Checks RFC versions 1–5. Use `isUuidEncoding` for the encoding or `isRfcUuid` with its `versions` option for an RFC policy. */
   static isValid = functions.isValid;
+  /** @deprecated Checks dashed UUIDs from v1–5. Use `isUuidEncoding` for the encoding or `isRfcUuid` with `encoding: "dashed"` and optional `versions`. */
   static isValidString = functions.isValidString;
+  /** @deprecated Checks 32 hex digits from v1–5. Use `isUuidEncoding` for the encoding or `isRfcUuid` with `encoding: "hex"` and optional `versions`. */
   static isValidHex = functions.isValidHex;
+  /** @deprecated Checks v1–5 byte views. Combine `ArrayBuffer.isView` with `isUuidEncoding` or with `isRfcUuid` and its `versions` option. */
   static isValidBytes = functions.isValidBytes;
   static nil = functions.nil;
   static max = functions.max;
@@ -45,6 +49,7 @@ export class UUID {
   equals(other: NullableUuidInput, ...rest: NullableUuidInput[]): boolean { return UUID.equals(this, other, ...rest); }
   compare(other: UuidInput): -1 | 0 | 1 { return UUID.compare(this, other); }
   version(): number { return UUID.version(this); }
+  /** @deprecated Checks RFC versions 1–5. Use `isUuidEncoding(id)` or `isRfcUuid(id)` with its optional `versions` policy. */
   isValid(): boolean { return UUID.isValid(this); }
   toString(): CanonicalUuid { return this.#value; }
   toJSON(): CanonicalUuid { return this.#value; }

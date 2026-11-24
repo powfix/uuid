@@ -224,3 +224,20 @@ it("round-trips opaque ObjectId padding and general byte strings", () => {
   assert.deepEqual(Uint8ArrayUtils.fromHex(""), new Uint8Array());
   for (const s of ["a", "0g", "zz", "ab\n\n"]) assert.throws(() => Uint8ArrayUtils.fromHex(s), TypeError);
 });
+
+it("retains the v1–5 policy for every deprecated validator", () => {
+  for (let version = 1; version <= 8; version++) {
+    const uuid = parse(id.replace("-4677", "-" + version + "677"));
+    const legacy = version <= 5;
+    assert.equal(uuid.isValid(), legacy);
+    assert.equal(node.isValid(uuid), legacy);
+    assert.equal(node.isValidString(uuid.toString()), legacy);
+    assert.equal(node.isValidHex(uuid.toHex()), legacy);
+    assert.equal(node.isValidBytes(uuid.toBytes()), legacy);
+    assert.equal(isRfcUuid(uuid, {versions: [1, 2, 3, 4, 5]}), legacy);
+  }
+  const timeOrdered = UUID.v7();
+  assert.equal(timeOrdered.isValid(), false);
+  assert.equal(isUuidEncoding(timeOrdered), true);
+  assert.equal(isRfcUuid(timeOrdered, {versions: [7]}), true);
+});

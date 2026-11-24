@@ -12,6 +12,33 @@ import {webcrypto} from "node:crypto";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const require = createRequire(import.meta.url);
 
+function checkValidatorDeprecations(directory) {
+  const ts = require("typescript");
+  const filename = join(directory, "validators.mts");
+  const code = ['import * as shared from "@powfix/uuid";', 'import * as node from "@powfix/uuid/node";'];
+  for (const entry of ["shared", "node"]) {
+    for (const method of ["isValid", "isValidString", "isValidHex", "isValidBytes"]) {
+      code.push(`${entry}.${method}(null);`, `${entry}.UUID.${method}(null);`);
+    }
+    code.push(`${entry}.UUID.v7().isValid();`);
+  }
+  writeFileSync(filename, code.join("\n"));
+  const program = ts.createProgram([filename], {module: ts.ModuleKind.NodeNext, noEmit: true});
+  const checker = program.getTypeChecker();
+  for (const statement of program.getSourceFile(filename).statements) {
+    if (!ts.isExpressionStatement(statement)) continue;
+    const name = statement.expression.expression.name;
+    const member = checker.getSymbolAtLocation(name);
+    assert.ok(member, `Unresolved validator ${statement.getText()}`);
+    const symbol = member.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(member) : member;
+    const tag = symbol.getJsDocTags(checker).find(tag => tag.name === "deprecated");
+    const guidance = ts.displayPartsToString(tag?.text);
+    for (const replacement of ["isUuidEncoding", "isRfcUuid", "versions"]) {
+      assert.ok(guidance.includes(replacement), `Missing ${replacement} guidance for ${statement.getText()}`);
+    }
+  }
+}
+
 it("provides self-contained packed ESM/CJS exports, strict consumer types and browser code", () => {
   const directory = mkdtempSync(join(tmpdir(), "uuid-consumer-"));
   try {
@@ -28,6 +55,7 @@ it("provides self-contained packed ESM/CJS exports, strict consumer types and br
     const nested = join(directory, "other/node_modules/@powfix/uuid");
     mkdirSync(nested, {recursive: true});
     execFileSync("tar", ["-xzf", join(directory, packed[0].filename), "--strip-components=1", "-C", nested]);
+    checkValidatorDeprecations(directory);
     const body = `
       const id = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
       for (const api of [shared, node]) {

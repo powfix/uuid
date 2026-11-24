@@ -52,6 +52,8 @@ import {UUID, v4, v7, isUuidEncoding, isRfcUuid} from "@powfix/uuid";
 const random = v4();            // also UUID.v4()
 const timeOrdered = v7();       // also UUID.v7()
 UUID.equals(random, random.toBytes());            // true
+timeOrdered.isValid();                            // false (legacy versions 1–5)
+isUuidEncoding(timeOrdered);                     // true
 isRfcUuid(random, {versions: [4]});               // true
 isRfcUuid(timeOrdered, {versions: [7]});          // true
 isRfcUuid(random.toHex(), {encoding: "dashed"});  // false
@@ -60,7 +62,7 @@ isUuidEncoding(UUID.nil());                      // true
 
 - `parse` and `isUuidEncoding` accept every correctly encoded 128-bit value, including padded binary identifiers. They preserve the original bits.
 - `isRfcUuid` accepts the RFC variant with versions 1–8, plus the special nil and max UUIDs. Setting `versions` restricts the accepted versions and excludes those special values by default. Use `allowNil` or `allowMax` to set either policy explicitly. `encoding: "dashed"` and `encoding: "hex"` restrict the input to that string form.
-- The existing `UUID.isValid`, `isValidString`, `isValidHex`, `isValidBytes` and instance `isValid()` keep the older RFC variant and version 1–5 policy. Use `isRfcUuid` for current RFC values or an explicit domain policy.
+- The `isValid`, `isValidString`, `isValidHex` and `isValidBytes` helpers, their class methods and `id.isValid()` are deprecated. They accept only the RFC variant with versions 1–5, so `UUID.v7().isValid()` returns `false`. Use `isUuidEncoding(value)` to check the representation, `isRfcUuid(value)` for RFC UUIDs, or `isRfcUuid(value, {versions: [4, 7]})` for specific versions. Use `versions: [1, 2, 3, 4, 5]` to keep the legacy version policy.
 - `UUID.compare(a, b)` and `id.compare(other)` return `-1`, `0` or `1` in unsigned byte order. `UUID.equals(a, b, ...others)` checks that all compared values match. A nullish argument makes the comparison false. Invalid non-nullish inputs encountered during comparison throw. `id.version()` returns the raw version nibble. `UUID.nil()` and `UUID.max()` return the two special values.
 
 The published JavaScript targets ES2020. Only UUID generation requires `globalThis.crypto.getRandomValues`. A React Native application should initialize a secure Web Crypto provider in its entry file before generating IDs. UUIDv7 records the Unix millisecond in the first 48 bits and draws independent random bits per call. IDs from different milliseconds sort by their encoded time. Within a millisecond their order is random, and a backward clock adjustment is reflected in the next timestamp. [RFC 9562, UUIDv7](https://www.rfc-editor.org/rfc/rfc9562.html#section-5.7)
