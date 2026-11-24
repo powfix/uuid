@@ -6,6 +6,9 @@ declare const row: {uuid: NodeUUID};
 const bytes: Buffer = row.uuid.toBuffer();
 const parsed: Buffer = parse(Portable.nil()).toBuffer();
 const converted: Buffer = NodeUUID.toBuffer(Portable.nil());
+const portableBytes: Uint8Array = NodeUUID.toBytes(Portable.nil());
+// @ts-expect-error even on the Node entry toBytes returns a portable Uint8Array
+const nodeBuffer: Buffer = NodeUUID.toBytes(row.uuid);
 // @ts-expect-error browser UUIDs only expose portable byte operations
 Portable.nil().toBuffer();
 // @ts-expect-error the static Buffer converter belongs to the Node entry

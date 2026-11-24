@@ -32,7 +32,7 @@ it("provides self-contained packed ESM/CJS exports, strict consumer types and br
       const id = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
       for (const api of [shared, node]) {
         for (const method of [
-          "parse", "tryParse", "parseNullable", "from", "format", "fromString", "fromHex", "fromBytes",
+          "parse", "tryParse", "parseNullable", "from", "format", "fromString", "fromHex", "fromBytes", "toHex", "toBytes",
           "isUuidEncoding", "isRfcUuid", "isValid", "isValidString", "isValidHex", "isValidBytes",
           "nil", "max", "v4", "v7", "version", "equals", "compare",
         ]) {
@@ -132,8 +132,9 @@ it("provides self-contained packed ESM/CJS exports, strict consumer types and br
     }
 
     const browser = require("esbuild").buildSync({
-      stdin: {contents: `import {UUID, UuidMap, UuidSet} from "@powfix/uuid";
+      stdin: {contents: `import {UUID, UuidMap, UuidSet, parseUuid, toBytes, toHex} from "@powfix/uuid";
         const id = UUID.v4();
+        if (parseUuid !== UUID.parse || toHex(id) !== id.toHex() || !id.equals(toBytes(id))) throw Error("browser conversion failed");
         const map = new UuidMap([[id.toBytes(), true]]);
         if (map.getOrInsert(id, false) !== true) throw Error("browser UUID insertion failed");
         if (!map.get(id)) throw Error("browser lookup failed");

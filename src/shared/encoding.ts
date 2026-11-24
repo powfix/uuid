@@ -22,6 +22,8 @@ function dashed(hex: string): CanonicalUuid {
     hex.slice(16, 20) + "-" + hex.slice(20)) as CanonicalUuid;
 }
 
+export function canonicalToHex(value: CanonicalUuid): string { return value.replace(/-/g, ""); }
+
 export function readBytes(value: unknown): CanonicalUuid | undefined {
   if (!ArrayBuffer.isView(value) || typedArrayName.call(value) !== "Uint8Array" ||
       typedArrayLength.call(value) !== 16) return undefined;

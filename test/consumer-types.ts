@@ -1,6 +1,6 @@
 import {
   UUID, UuidMap, UuidSet, compare, equals, from, fromBytes, fromHex, fromString, isRfcUuid, isValidString,
-  max, nil, parse, parseNullable, parseUuid, tryParse, version,
+  max, nil, parse, parseNullable, parseUuid, toBytes, toHex, tryParse, version,
   type CanonicalUuid, type NonNullableUuidInput, type NullableUuidInput, type UuidByteSource,
   type UuidInput, type UuidPolicy, type UuidSetLike, type UuidSetOperand, type UuidString, type UuidVersion,
 } from "@powfix/uuid";
@@ -43,6 +43,10 @@ const maybe: UUID | null | undefined = parseNullable(maybeInput);
 const optionalNull: null = UUID.from(null);
 const optionalUndefined: undefined = parseNullable(undefined);
 const canonical: CanonicalUuid = parsed.toString();
+const compact: string = UUID.toHex(toBytes(id));
+const portableBytes: Uint8Array = UUID.toBytes(toHex(parsed));
+// @ts-expect-error a required UUID input cannot be null
+toBytes(null);
 if (isRfcUuid(externalInput, {versions: [4, 7]})) {
   const supported: UuidInput = externalInput;
   map.get(supported);

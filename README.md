@@ -34,7 +34,15 @@ parseNullable(undefined);   // undefined
 
 Accepted inputs are exactly 32 hexadecimal digits, the 36-character `8-4-4-4-12` form, a 16-byte `Uint8Array` (including a Node `Buffer`), or an object with a `toBytes()` method returning such a view. Both string forms accept either letter case. Whitespace, misplaced hyphens, incomplete pairs and other byte lengths fail validation. Byte views respect their offsets. UUID instances from earlier releases and separate package installations can be passed directly.
 
-`id.toString()` and `id.toJSON()` return a lowercase, dashed `CanonicalUuid` string. `id.toHex()` returns the 32-digit form. Both `id.toBytes()` and the `id.bytes` getter return fresh copies. For generic hex data of any length, `Uint8ArrayUtils.fromHex(text)` and `Uint8ArrayUtils.toHex(bytes)` convert complete byte pairs.
+To convert an input directly, import one of these functions or call it on `UUID`. Each takes the same UUID representations as `parseUuid` and throws `TypeError` for malformed or missing values.
+
+| Result | From any supported input | From a parsed UUID |
+| --- | --- | --- |
+| Lowercase dashed string | `format(value)` | `id.toString()` or `id.toJSON()` |
+| 32 lowercase hex digits | `toHex(value)` | `id.toHex()` |
+| Fresh 16-byte `Uint8Array` | `toBytes(value)` | `id.toBytes()` or `id.bytes` |
+
+For generic hex data of any length, `Uint8ArrayUtils.fromHex(text)` and `Uint8ArrayUtils.toHex(bytes)` convert complete byte pairs.
 
 ## Generate, compare and validate
 

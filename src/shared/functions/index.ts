@@ -2,6 +2,8 @@ export {parseUuid, parseUuid as parse} from "./parseUuid";
 export {tryParse} from "./tryParse";
 export {parseNullable, parseNullable as from} from "./parseNullable";
 export {format} from "./format";
+export {toHex} from "./toHex";
+export {toBytes} from "./toBytes";
 export {fromString} from "./fromString";
 export {fromHex} from "./fromHex";
 export {fromBytes} from "./fromBytes";

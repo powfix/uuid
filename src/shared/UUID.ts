@@ -1,4 +1,4 @@
-import {uuidValues} from "./encoding";
+import {canonicalToHex, uuidValues} from "./encoding";
 import * as functions from "./functions";
 import type {CanonicalUuid, NullableUuidInput, UuidInput} from "./types";
 import {Uint8ArrayUtils} from "./utils";
@@ -12,6 +12,8 @@ export class UUID {
   get #value(): CanonicalUuid { return uuidValues.get(this)!; }
 
   static format = functions.format;
+  static toHex = functions.toHex;
+  static toBytes = functions.toBytes;
   static parse = functions.parseUuid;
   static tryParse = functions.tryParse;
   static parseNullable = functions.parseNullable;
@@ -46,7 +48,7 @@ export class UUID {
   isValid(): boolean { return UUID.isValid(this); }
   toString(): CanonicalUuid { return this.#value; }
   toJSON(): CanonicalUuid { return this.#value; }
-  toHex(): string { return this.#value.replace(/-/g, ""); }
+  toHex(): string { return canonicalToHex(this.#value); }
   toBytes(): Uint8Array { return Uint8ArrayUtils.fromHex(this.toHex()); }
   /** A fresh copy, just like toBytes(). */
   get bytes(): Uint8Array { return this.toBytes(); }

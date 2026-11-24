@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import {it} from "node:test";
 import {createRequire} from "node:module";
 import {runInNewContext} from "node:vm";
-import {UUID, UuidMap, Uint8ArrayUtils, format, isRfcUuid, isUuidEncoding, parse, parseNullable, parseUuid, tryParse} from "../dist/index.js";
+import {
+  UUID, UuidMap, Uint8ArrayUtils, format, isRfcUuid, isUuidEncoding, parse, parseNullable, parseUuid, toBytes, toHex, tryParse,
+} from "../dist/index.js";
 import * as node from "../dist/index.node.js";
 
 const {UUID: NodeUUID, toBuffer} = node;
@@ -97,6 +99,32 @@ it("keeps JSON, comparisons and database bytes in sync after every outward mutat
   assert.equal(uuid.toHex(), hex);
   assert.equal(JSON.stringify({id: uuid}), JSON.stringify({id}));
   assert.deepEqual(toBuffer(uuid), Buffer.from(bytes));
+});
+
+it("converts UUID inputs to lowercase hex and independent, portable 16-byte arrays", () => {
+  assert.equal(UUID.toHex, toHex);
+  assert.equal(UUID.toBytes, toBytes);
+  const padded = Buffer.from([255, ...bytes, 255]);
+  const foreign = createRequire(import.meta.url)("../dist/index.cjs").parse(hex);
+  for (const input of [id.toUpperCase(), hex, padded.subarray(1, 17), bytes, parse(id), foreign, {toBytes: () => bytes}]) {
+    const value = parse(input);
+    assert.equal(toHex(input), hex);
+    assert.equal(toHex(input), value.toHex());
+    const first = toBytes(input);
+    const second = UUID.toBytes(input);
+    assert.equal(Object.getPrototypeOf(first), Uint8Array.prototype);
+    assert.deepEqual(first, value.toBytes());
+    assert.notEqual(first.buffer, second.buffer);
+    first.fill(0);
+    assert.deepEqual(second, bytes);
+    assert.deepEqual(toBytes(input), value.toBytes());
+    assert.deepEqual(node.toBuffer(input), Buffer.from(second));
+  }
+  for (const bad of [null, undefined, "bad", new Uint8Array(15), new Int8Array(16), {toBytes: () => []}]) {
+    for (const convert of [toHex, toBytes, input => parse(input).toHex(), input => parse(input).toBytes()]) {
+      assert.throws(() => convert(bad), TypeError);
+    }
+  }
 });
 
 it("returns independent Node Buffers from existing instance calls and the standalone helper", () => {
