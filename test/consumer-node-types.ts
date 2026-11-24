@@ -6,6 +6,11 @@ import nodeCjs = require("@powfix/uuid/node");
 
 const id = UUID.from("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
 const buffer: Buffer = toBuffer(id);
+const convert: typeof toBuffer = UUID.toBuffer;
+const staticBuffer: Buffer = convert(id.toString());
+const cjsBuffer: Buffer = nodeCjs.UUID.toBuffer(id.toBytes());
+// @ts-expect-error a UUID input is required
+UUID.toBuffer(null);
 const model: {uuid: UUID} = {uuid: id};
 const fromModel: Buffer = model.uuid.toBuffer();
 declare const optionalBuffer: Buffer | null;

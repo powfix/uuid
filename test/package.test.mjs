@@ -62,6 +62,9 @@ it("provides self-contained packed ESM/CJS exports, strict consumer types and br
       assert.equal(UUID, common.UUID);
       assert.equal(UUID, NodeUUID);
       assert.equal(UUID, node.UUID);
+      assert.equal(NodeUUID.toBuffer, toBuffer);
+      assert.equal(node.UUID.toBuffer, common.UUID.toBuffer);
+      assert.equal(node.UUID.toBuffer, node.toBuffer);
       assert.equal(UuidMap, node.UuidMap);
       assert.equal(UuidSet, common.UuidSet);
       assert.equal(v4().version(), 4);
@@ -72,6 +75,7 @@ it("provides self-contained packed ESM/CJS exports, strict consumer types and br
       assert.ok(local instanceof node.UUID);
       assert.equal(local.equals(other.parse(local)), true);
       assert.deepEqual(toBuffer(foreign), Buffer.from(local.toBytes()));
+      assert.deepEqual(NodeUUID.toBuffer(foreign), local.toBuffer());
       assert.deepEqual(node.UUID.from(foreign).toBuffer(), toBuffer(foreign));
       assert.deepEqual(NodeUUID.parse(node.UUID.from(foreign)).toBuffer(), local.toBuffer());
       assert.equal(new UuidMap([[foreign, 1]]).get(local), 1);
@@ -85,6 +89,7 @@ it("provides self-contained packed ESM/CJS exports, strict consumer types and br
       const root = require("@powfix/uuid");
       const id = root.UUID.nil();
       assert.deepEqual(id.toBuffer(), Buffer.alloc(16));
+      assert.deepEqual(root.UUID.toBuffer(id), Buffer.alloc(16));
       const node = require("@powfix/uuid/node");
       assert.equal(node.parse(id), id);
       assert.equal(root.UUID, node.UUID);
@@ -129,7 +134,7 @@ it("provides self-contained packed ESM/CJS exports, strict consumer types and br
         if (set.difference(other).size !== 0) throw Error("browser difference failed");
         if (set.symmetricDifference(other).size !== 0) throw Error("browser symmetric difference failed");
         if (!set.isSubsetOf(other) || !set.isSupersetOf(other) || set.isDisjointFrom(other)) throw Error("browser predicates failed");
-        if (typeof Buffer !== "undefined" || "toBuffer" in id) throw Error("browser test exposed Node Buffer");`, resolveDir: directory},
+        if (typeof Buffer !== "undefined" || "toBuffer" in UUID || "toBuffer" in id) throw Error("browser test exposed Node Buffer");`, resolveDir: directory},
       bundle: true, platform: "browser", target: "es2020", format: "iife", write: false,
     });
     // Also exercise ES2020-style runtimes with no native Set composition methods.

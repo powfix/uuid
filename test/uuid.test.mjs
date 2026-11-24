@@ -110,6 +110,23 @@ it("returns independent Node Buffers from existing instance calls and the standa
   }
 });
 
+it("exposes the Node buffer converter directly on the UUID class", () => {
+  const convert = NodeUUID.toBuffer;
+  assert.equal(convert, toBuffer);
+  const padded = Buffer.from([255, ...bytes, 255]);
+  const original = NodeUUID.parse(id);
+  for (const input of [id, hex.toUpperCase(), bytes, padded.subarray(1, 17), original, {toBytes: () => bytes}]) {
+    const result = convert(input);
+    assert.ok(Buffer.isBuffer(result));
+    assert.deepEqual(result, Buffer.from(bytes));
+    result.fill(0);
+    assert.deepEqual(convert(input), original.toBuffer());
+  }
+  for (const invalid of ["bad", Buffer.alloc(15), null, undefined]) {
+    assert.throws(() => convert(invalid), TypeError);
+  }
+});
+
 it("accepts byte sources from another module copy and genuine uint8 views from a different realm", () => {
   const {UUID: OtherUUID} = createRequire(import.meta.url)("../dist/index.cjs");
   const other = OtherUUID.parse(id);
