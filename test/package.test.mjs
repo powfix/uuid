@@ -151,10 +151,12 @@ it("provides self-contained packed ESM/CJS exports, strict consumer types and br
             typeRoots: [dirname(dirname(require.resolve("@types/node/package.json")))]},
           files,
         }));
-        try {
-          execFileSync(process.execPath, [require.resolve("typescript/bin/tsc"), "-p", join(directory, "tsconfig.json")], {cwd: directory});
-        } catch (error) {
-          throw new Error(`${fixture} (${moduleResolution}, ${lib}): ${error.stdout} ${error.stderr}`);
+        for (const compiler of ["typescript", "typescript-5-5"]) {
+          try {
+            execFileSync(process.execPath, [require.resolve(compiler + "/bin/tsc"), "-p", join(directory, "tsconfig.json")], {cwd: directory});
+          } catch (error) {
+            throw new Error(`${fixture} (${compiler}, ${moduleResolution}, ${lib}): ${error.stdout} ${error.stderr}`);
+          }
         }
       }
     }

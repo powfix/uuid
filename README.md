@@ -121,6 +121,8 @@ Both collections provide `size`, `clear`, `delete`, `has`, `keys`, `values`, `en
 
 Public UUID helpers live in files named for their implementation, such as `compare.ts` and `parseUuid.ts`. Named exports match their class methods (`compare` and `UUID.compare`, for example). The strict parser also has the explicit import name `parseUuid`. Type declarations are grouped by role in `*.types.ts` files.
 
+The package tests compile browser and Node consumers against the packed declarations with both TypeScript 5.5 and the project's build compiler.
+
 ```sh
 npm test   # build and exercise runtime, packaged imports, browser code and strict consumer types
 npm pack   # run prepack checks and create the release tarball

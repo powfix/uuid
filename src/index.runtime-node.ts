@@ -18,5 +18,7 @@ function nodeConstructor(): NodeUuidConstructor {
 }
 
 export const UUID = nodeConstructor();
-export const {parse, tryParse, parseNullable, from, fromString, fromHex, fromBytes, nil, max, v4, v7} = UUID;
+export const {parse, tryParse, parseNullable, from, fromString, fromHex, nil, max, v4, v7} = UUID;
+// Keep the original Uint8Array signature in declarations read by TypeScript 5.5.
+export const fromBytes: NodeUuidConstructor["fromBytes"] = UUID.fromBytes;
 export {parse as parseUuid};
