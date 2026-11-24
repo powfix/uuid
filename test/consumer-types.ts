@@ -1,6 +1,7 @@
 import {
   UUID, UuidMap, UuidSet, isRfcUuid, parse, parseNullable, tryParse,
-  type CanonicalUuid, type NullableUuidInput, type UuidInput, type UuidSetLike,
+  type CanonicalUuid, type NonNullableUuidInput, type NullableUuidInput, type UuidByteSource,
+  type UuidInput, type UuidPolicy, type UuidSetLike, type UuidSetOperand, type UuidString, type UuidVersion,
 } from "@powfix/uuid";
 
 const id: string = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
@@ -47,3 +48,11 @@ if (isRfcUuid(externalInput, {versions: [4, 7]})) {
 }
 const olderValue: UuidInput = {toBytes: () => bytes};
 map.get(olderValue);
+const source: UuidByteSource = parsed;
+const required: NonNullableUuidInput = source;
+const stringValue: UuidString = canonical;
+const versions: UuidVersion[] = [4, 7];
+const policy: UuidPolicy = {versions};
+const operand: UuidSetOperand = [required];
+set.union(operand);
+isRfcUuid(stringValue, policy);

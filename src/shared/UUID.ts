@@ -1,23 +1,11 @@
 import {readUuid} from "./encoding";
-import type {CanonicalUuid, NullableUuidInput, UuidInput, UuidString} from "./types";
+import type {CanonicalUuid, NullableUuidInput, UuidInput, UuidPolicy, UuidString, UuidVersion} from "./types";
+import type {ParsedNullable} from "./types/parsing.types";
 import {Uint8ArrayUtils} from "./utils";
-
-export type UuidVersion = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
-
-export interface UuidPolicy {
-  versions?: readonly UuidVersion[];
-  /** Restrict input to one of the two string encodings. */
-  encoding?: "dashed" | "hex";
-  /** Special values are accepted by default when no versions are specified. */
-  allowNil?: boolean;
-  allowMax?: boolean;
-}
 
 const nil: string = "00000000-0000-0000-0000-000000000000";
 const max: string = "ffffffff-ffff-ffff-ffff-ffffffffffff";
 const legacyPolicy: UuidPolicy = {versions: [1, 2, 3, 4, 5]};
-
-type ParsedNullable<T extends NullableUuidInput> = T extends null | undefined ? T : UUID;
 
 function randomBytes(version: 4 | 7): Uint8Array {
   const crypto = globalThis.crypto;
@@ -67,7 +55,7 @@ export class UUID {
 
   // Infer a UUID for unchecked middleware inputs while preserving explicitly nullable unions.
   static parseNullable<T extends UuidInput>(input: T): UUID;
-  static parseNullable<T extends NullableUuidInput>(input: T): ParsedNullable<T>;
+  static parseNullable<T extends NullableUuidInput>(input: T): ParsedNullable<T, UUID>;
   static parseNullable(input: unknown): UUID | null | undefined;
   static parseNullable(input: unknown): UUID | null | undefined {
     if (input === null || input === undefined) return input;

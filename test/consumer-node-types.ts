@@ -3,9 +3,12 @@ import {parse, type CanonicalUuid, type UuidMap as EsmMap} from "@powfix/uuid";
 import {Buffer} from "node:buffer";
 import sharedCjs = require("@powfix/uuid");
 import nodeCjs = require("@powfix/uuid/node");
+import type {NodeUuidConstructor} from "@powfix/uuid/node";
 
 const id = UUID.from("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
 const buffer: Buffer = toBuffer(id);
+const factory: NodeUuidConstructor = UUID;
+const factoryBytes: Buffer = factory.parse(id).toBuffer();
 const convert: typeof toBuffer = UUID.toBuffer;
 const staticBuffer: Buffer = convert(id.toString());
 const cjsBuffer: Buffer = nodeCjs.UUID.toBuffer(id.toBytes());

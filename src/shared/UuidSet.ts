@@ -1,13 +1,5 @@
 import {format} from "./UUID";
-import type {CanonicalUuid, NullableUuidInput, UuidInput} from "./types";
-
-export interface UuidSetLike<T = UuidInput> {
-  readonly size: number;
-  has(value: T): boolean;
-  keys(): Iterator<T>;
-}
-
-export type UuidSetOperand = Iterable<UuidInput> | UuidSetLike;
+import type {CanonicalUuid, NullableUuidInput, UuidInput, UuidSetLike, UuidSetOperand} from "./types";
 
 function operandKeys(other: UuidSetOperand): Iterable<UuidInput> {
   if (other == null) throw new TypeError("Expected an iterable or set-like UUID collection");
