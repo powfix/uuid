@@ -1,4 +1,4 @@
-import {format} from "./UUID";
+import {format} from "./functions/format";
 import type {CanonicalUuid, NullableUuidInput, UuidInput, UuidSetLike, UuidSetOperand} from "./types";
 
 function operandKeys(other: UuidSetOperand): Iterable<UuidInput> {

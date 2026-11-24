@@ -1,6 +1,7 @@
 export * from "./types";
 export * from "./utils";
 
-export * from "./UUID";
+export {UUID} from "./UUID";
+export * from "./functions";
 export * from "./UuidMap";
 export * from "./UuidSet";

@@ -31,6 +31,16 @@ it("provides self-contained packed ESM/CJS exports, strict consumer types and br
     const body = `
       const id = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
       for (const api of [shared, node]) {
+        for (const method of [
+          "parse", "tryParse", "parseNullable", "from", "format", "fromString", "fromHex", "fromBytes",
+          "isUuidEncoding", "isRfcUuid", "isValid", "isValidString", "isValidHex", "isValidBytes",
+          "nil", "max", "v4", "v7", "version", "equals", "compare",
+        ]) {
+          if (typeof api[method] !== "function" || api[method] !== api.UUID[method]) throw Error("export mismatch: " + method);
+        }
+        if (api.parseUuid !== api.UUID.parse || api.from !== api.parseNullable) throw Error("parser alias mismatch");
+        if (api.parseUuid(id).toString() !== id) throw Error("parseUuid failed");
+        if (Object.keys(api.UUID).join() !== "from") throw Error("enumerable static methods changed");
         const map = new api.UuidMap([[api.UUID.from(id), "ok"]]);
         if ([...map.keys()][0] !== id) throw Error("canonical key missing");
         if (map.get(id.toUpperCase()) !== "ok") throw Error("map lookup failed");

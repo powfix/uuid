@@ -1,4 +1,6 @@
-import {UUID, UuidMap, UuidSet, parseNullable, tryParse, v4, v7, toBuffer} from "@powfix/uuid/node";
+import {
+  UUID, UuidMap, UuidSet, from, fromBytes, fromHex, fromString, max, nil, parseNullable, parseUuid, tryParse, v4, v7, toBuffer,
+} from "@powfix/uuid/node";
 import {parse, type CanonicalUuid, type UuidMap as EsmMap} from "@powfix/uuid";
 import {Buffer} from "node:buffer";
 import sharedCjs = require("@powfix/uuid");
@@ -20,6 +22,11 @@ declare const optionalBuffer: Buffer | null;
 const nullableModel: UUID | null = parseNullable(optionalBuffer);
 const nullableBytes: Buffer | undefined = nullableModel?.toBuffer();
 const validated: Buffer | undefined = tryParse(buffer)?.toBuffer();
+const namedFactories: Buffer[] = [
+  from(id).toBuffer(), fromBytes(buffer).toBuffer(), fromHex(id.toHex()).toBuffer(), fromString(id.toString()).toBuffer(),
+  nil().toBuffer(), max().toBuffer(), parseUuid(id).toBuffer(), nodeCjs.parseUuid(id).toBuffer(),
+];
+const fromOptional: Buffer | undefined = from(optionalBuffer)?.toBuffer();
 const copies: Buffer[] = [
   new UUID(buffer).toBuffer(), UUID.fromString(id.toString()).toBuffer(), UUID.fromHex(id.toHex()).toBuffer(),
   UUID.fromBytes(buffer).toBuffer(), UUID.nil().toBuffer(), UUID.max().toBuffer(), v4().toBuffer(), v7().toBuffer(),
@@ -29,6 +36,7 @@ const missing: undefined = parseNullable(undefined);
 // Legacy form sanitizers receive an unchecked value from their middleware.
 declare const formValue: any;
 const sanitized = UUID.from(formValue).toBuffer();
+const namedSanitized: Buffer = from(formValue).toBuffer();
 // @ts-expect-error the sanitizer returns a typed Buffer
 sanitized.unknownBufferMethod();
 const map = new UuidMap([[buffer, 1]]);

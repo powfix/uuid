@@ -1,4 +1,4 @@
-import {format} from "./UUID";
+import {format} from "./functions/format";
 import type {CanonicalUuid, NullableUuidInput, UuidInput} from "./types";
 
 /** A value-keyed map. Iteration always returns lowercase, dashed UUID strings. */

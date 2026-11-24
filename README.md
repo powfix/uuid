@@ -9,27 +9,28 @@ npm install @powfix/uuid
 ## Start with parse
 
 ```ts
-import {parse, tryParse, parseNullable} from "@powfix/uuid";
+import {parseUuid, tryParse, parseNullable} from "@powfix/uuid";
 
-const id = parse("00112233445546778899AABBCCDDEEFF");
+const id = parseUuid("00112233445546778899AABBCCDDEEFF");
 id.toString();              // "00112233-4455-4677-8899-aabbccddeeff"
 const bytes = id.toBytes(); // an independent Uint8Array of 16 bytes
-parse(bytes).equals(id);    // true
+parseUuid(bytes).equals(id); // true
 JSON.stringify({id});       // {"id":"00112233-4455-4677-8899-aabbccddeeff"}
 
-tryParse("incomplete");     // undefined
+tryParse(id)?.toHex();      // "00112233445546778899aabbccddeeff"
+tryParse("incomplete")?.toHex(); // undefined
 parseNullable(null);        // null
 parseNullable(undefined);   // undefined
 ```
 
 | When you need to… | Use | On malformed input |
 | --- | --- | --- |
-| Read a required ID | `parse(value)` | Throws `TypeError`, including for `null` and `undefined` |
+| Read a required ID | `parseUuid(value)` or `parse(value)` | Throws `TypeError`, including for `null` and `undefined` |
 | Read user input that may be invalid | `tryParse(value)` | Returns `undefined` |
 | Read an optional DB or API field | `parseNullable(value)` | Preserves `null` and `undefined`. Other malformed inputs throw `TypeError` |
 | Get just the canonical string | `format(value)` | Throws `TypeError` |
 
-The `UUID` class provides the same helpers as static methods, such as `UUID.parse(value)`. `UUID.from(value)` is the null-preserving convenience method. `new UUID(value)` also validates its input.
+`parseUuid`, `parse` and `UUID.parse` are the same function. Use `tryParse(value)?.toHex()` when a malformed or missing input should produce `undefined`. `from` and `UUID.from` are aliases of `parseNullable`. `new UUID(value)` also validates its input.
 
 Accepted inputs are exactly 32 hexadecimal digits, the 36-character `8-4-4-4-12` form, a 16-byte `Uint8Array` (including a Node `Buffer`), or an object with a `toBytes()` method returning such a view. Both string forms accept either letter case. Whitespace, misplaced hyphens, incomplete pairs and other byte lengths fail validation. Byte views respect their offsets. UUID instances from earlier releases and separate package installations can be passed directly.
 
@@ -107,6 +108,8 @@ Both collections provide `size`, `clear`, `delete`, `has`, `keys`, `values`, `en
 | `UUID.from(null)` on 0.2.17 | `parse(null)` throws. `parseNullable(null)` and `UUID.from(null)` return `null`, as in 0.2.19 and 0.3. |
 
 ## Development
+
+Public UUID helpers live in files named for their implementation, such as `compare.ts` and `parseUuid.ts`. Named exports match their class methods (`compare` and `UUID.compare`, for example). The strict parser also has the explicit import name `parseUuid`. Type declarations are grouped by role in `*.types.ts` files.
 
 ```sh
 npm test   # build and exercise runtime, packaged imports, browser code and strict consumer types

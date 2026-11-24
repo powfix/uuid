@@ -1,8 +1,16 @@
 import type {CanonicalUuid} from "./types";
+import type {UUID} from "./UUID";
 import {bytesToHex} from "./utils/Uint8ArrayUtils";
 
 const hexPattern = /^[0-9a-f]{32}$/i;
 const dashedPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// Only locally constructed UUIDs are registered. Other installations supply their bytes.
+export const uuidValues = new WeakMap<object, CanonicalUuid>();
+
+export function isLocalUuid(input: unknown): input is UUID {
+  return typeof input === "object" && input !== null && uuidValues.has(input);
+}
 
 // Use the intrinsic brand and length for views from other realms, including Node Buffers.
 const typedArrayPrototype = Object.getPrototypeOf(Uint8Array.prototype);
@@ -29,6 +37,8 @@ export function readUuid(value: unknown): CanonicalUuid | undefined {
   }
   if (value === null || (typeof value !== "object" && typeof value !== "function")) return undefined;
   if (ArrayBuffer.isView(value)) return readBytes(value);
+  const own = uuidValues.get(value);
+  if (own !== undefined) return own;
 
   // A different installation (including 0.x) can supply its bytes without sharing a prototype.
   try {

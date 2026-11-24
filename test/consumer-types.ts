@@ -1,5 +1,6 @@
 import {
-  UUID, UuidMap, UuidSet, isRfcUuid, parse, parseNullable, tryParse,
+  UUID, UuidMap, UuidSet, compare, equals, from, fromBytes, fromHex, fromString, isRfcUuid, isValidString,
+  max, nil, parse, parseNullable, parseUuid, tryParse, version,
   type CanonicalUuid, type NonNullableUuidInput, type NullableUuidInput, type UuidByteSource,
   type UuidInput, type UuidPolicy, type UuidSetLike, type UuidSetOperand, type UuidString, type UuidVersion,
 } from "@powfix/uuid";
@@ -48,6 +49,19 @@ if (isRfcUuid(externalInput, {versions: [4, 7]})) {
 }
 const olderValue: UuidInput = {toBytes: () => bytes};
 map.get(olderValue);
+const strictAlias: typeof UUID.parse = parseUuid;
+const requiredUuid: UUID = strictAlias(externalInput);
+const optionalHex: string | undefined = tryParse(externalInput)?.toHex();
+const fromNull: null = from(null);
+const fromMissing: undefined = from(undefined);
+const fromMaybe: UUID | null | undefined = from(maybeInput);
+const factories: UUID[] = [fromString(id), fromHex(parsed.toHex()), fromBytes(bytes), nil(), max()];
+const order: -1 | 0 | 1 = compare(requiredUuid, parsed);
+const equal: boolean = equals(requiredUuid, parsed);
+const bits: number = version(parsed);
+if (isValidString(externalInput)) {
+  const dashed: UuidString = externalInput;
+}
 const source: UuidByteSource = parsed;
 const required: NonNullableUuidInput = source;
 const stringValue: UuidString = canonical;

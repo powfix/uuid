@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import {it} from "node:test";
 import {createRequire} from "node:module";
 import {runInNewContext} from "node:vm";
-import {UUID, UuidMap, Uint8ArrayUtils, format, isRfcUuid, isUuidEncoding, parse, parseNullable, tryParse} from "../dist/index.js";
+import {UUID, UuidMap, Uint8ArrayUtils, format, isRfcUuid, isUuidEncoding, parse, parseNullable, parseUuid, tryParse} from "../dist/index.js";
 import * as node from "../dist/index.node.js";
 
 const {UUID: NodeUUID, toBuffer} = node;
@@ -11,6 +11,21 @@ const id = "00112233-4455-4677-8899-aabbccddeeff";
 const hex = "00112233445546778899aabbccddeeff";
 const bytes = Uint8Array.of(0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x46, 0x77,
   0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff);
+
+it("shares the strict parser and recognizes genuine local UUIDs by their stored value", () => {
+  assert.equal(parseUuid, parse);
+  assert.equal(parseUuid, UUID.parse);
+  const local = parseUuid(hex);
+  local.toBytes = () => { throw new Error("local UUIDs already carry their canonical value"); };
+  assert.equal(parseUuid(local), local);
+  assert.equal(format(local), id);
+  assert.equal(parseUuid({toBytes: () => bytes}).toString(), id);
+  assert.throws(() => parseUuid(Object.create(UUID.prototype)), TypeError);
+  for (const invalid of ["bad", null, undefined]) {
+    assert.throws(() => parseUuid(invalid), TypeError);
+    assert.equal(tryParse(invalid)?.toHex(), undefined);
+  }
+});
 
 it("parses every representation with one API and preserves all bits and offsets", () => {
   const padded = Uint8Array.of(255, ...bytes, 255);

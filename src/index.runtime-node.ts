@@ -18,4 +18,5 @@ function nodeConstructor(): NodeUuidConstructor {
 }
 
 export const UUID = nodeConstructor();
-export const {parse, parseNullable, tryParse, v4, v7} = UUID;
+export const {parse, tryParse, parseNullable, from, fromString, fromHex, fromBytes, nil, max, v4, v7} = UUID;
+export {parse as parseUuid};
