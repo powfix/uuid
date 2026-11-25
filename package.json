@@ -1,6 +1,6 @@
 {
   "name": "@powfix/uuid",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Parse immutable UUIDs, generate UUIDv4 and UUIDv7, and use maps and sets keyed by UUID value",
   "keywords": [
     "uuid",
